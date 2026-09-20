@@ -39,6 +39,9 @@ type SearchResponse = {
 
 // withParams helper now lives inside reusable components; remove here.
 
+// Cache marketplace listing page at the edge for 60 seconds
+export const revalidate = 60;
+
 export default async function MarketplacePage({
   searchParams,
 }: {

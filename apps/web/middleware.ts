@@ -17,7 +17,7 @@ const TRUSTED_BOT_LIMIT = 240;
 const BLOCK_MS = 10 * 60_000;
 
 const TRUSTED_BOTS = /(googlebot|bingbot|duckduckbot|applebot|yandexbot)/i;
-const AUTOMATION_UA = /(bot|crawl|spider|scrapy|curl|wget|python-requests|httpclient|go-http-client|axios|node-fetch|java)/i;
+const AUTOMATION_UA = /(bot|crawl|spider|scrapy|curl|wget|python|httpclient|go-http-client|axios|node-fetch|java|headlesschrome|selenium|puppeteer|playwright|phantomjs|bytespider|claudebot|gptbot|dataforseobot|petalbot|ahrefsbot|semrushbot|mj12bot|seranking|dotbot|rogerbot|exabot)/i;
 const STATIC_FILE_EXT = /\.(?:css|js|mjs|map|png|jpg|jpeg|gif|webp|svg|ico|woff|woff2|ttf|otf|txt|xml)$/i;
 
 const BLOCKED_PATHS = [
@@ -65,6 +65,10 @@ function isBlockedProbe(pathname: string): boolean {
 }
 
 function cleanupRateStore(now: number) {
+  if (rateStore.size > 2000) {
+    rateStore.clear();
+    return;
+  }
   cleanupTick += 1;
   if (cleanupTick % 500 !== 0) return;
 
@@ -80,11 +84,30 @@ function rateLimitMarketplace(req: NextRequest): NextResponse | null {
   if (!isMarketplacePath(pathname)) return null;
   if (req.method !== "GET" && req.method !== "HEAD") return null;
 
+  const ua = req.headers.get("user-agent") || "";
+  // Block empty or conspicuously short user-agents on marketplace
+  if (!ua || ua.trim().length < 5) {
+    return new NextResponse("Forbidden", {
+      status: 403,
+      headers: { "Cache-Control": "no-store" },
+    });
+  }
+
+  const trustedBot = TRUSTED_BOTS.test(ua);
+  const automation = AUTOMATION_UA.test(ua) && !trustedBot;
+
+  // Immediately reject untrusted automation/scrapers on marketplace
+  if (automation) {
+    return new NextResponse("Forbidden", {
+      status: 403,
+      headers: { "Cache-Control": "no-store" },
+    });
+  }
+
   const now = Date.now();
   cleanupRateStore(now);
 
   const ip = getClientIp(req);
-  const ua = req.headers.get("user-agent") || "";
   const key = `mkt:${ip}`;
 
   const state = rateStore.get(key) ?? {
@@ -100,9 +123,7 @@ function rateLimitMarketplace(req: NextRequest): NextResponse | null {
   }
 
   state.lastSeen = now;
-  const trustedBot = TRUSTED_BOTS.test(ua);
-  const automation = AUTOMATION_UA.test(ua) && !trustedBot;
-  const limit = trustedBot ? TRUSTED_BOT_LIMIT : automation ? AUTOMATION_LIMIT : HUMAN_LIMIT;
+  const limit = trustedBot ? TRUSTED_BOT_LIMIT : HUMAN_LIMIT;
 
   if (state.blockedUntil > now) {
     rateStore.set(key, state);

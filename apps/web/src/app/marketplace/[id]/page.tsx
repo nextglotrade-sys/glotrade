@@ -47,6 +47,8 @@ type CategoriesResponse = { status: string; data: Category[] };
 // type Review = { _id: string; rating: number; comment?: string };
 // type ReviewsData = { reviews: Review[]; total: number };
 // type ReviewsResponse = { status: string; data: ReviewsData };
+// Cache product detail pages at the edge for 5 minutes
+export const revalidate = 300;
 
 export default async function ProductDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;

@@ -87,6 +87,15 @@ const nextConfig: NextConfig = {
         ],
       },
       {
+        source: '/marketplace/',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, s-maxage=300, stale-while-revalidate=600',
+          },
+        ],
+      },
+      {
         source: '/marketplace/:path*',
         headers: [
           {
