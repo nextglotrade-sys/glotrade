@@ -21,6 +21,8 @@ interface TPIA {
     purchasedAt: string;
     profitMode: string;
     estimatedProfit?: number;
+    totalProfitEarned?: number;
+    cyclesCompleted?: number;
     purchaseSource?: "wallet" | "manual_bank_deposit";
     manualPayment?: {
         amountReceived?: number;
@@ -259,7 +261,7 @@ export default function AdminTPIAManagementPage() {
                                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Partner</th>
                                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Source</th>
                                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Invested</th>
-                                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Est. Profit</th>
+                                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Profit</th>
                                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">GDC</th>
                                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
@@ -294,12 +296,25 @@ export default function AdminTPIAManagementPage() {
                                         )}
                                     </td>
                                     <td className="px-6 py-4 font-medium text-gray-900">{formatCurrency(tpia.purchasePrice)}</td>
-                                    <td className="px-6 py-4 font-medium text-green-600">+{formatCurrency(tpia.estimatedProfit || 0)}</td>
+                                    <td className="px-6 py-4 font-medium">
+                                        {tpia.status === "matured" || (tpia.cyclesCompleted ?? 0) > 0 && !tpia.estimatedProfit ? (
+                                            <span className="text-indigo-600" title={`Across ${tpia.cyclesCompleted ?? 0} cycle(s)`}>
+                                                +{formatCurrency(tpia.totalProfitEarned || 0)}
+                                                <span className="ml-1 text-xs font-normal text-indigo-400">total</span>
+                                            </span>
+                                        ) : (
+                                            <span className="text-green-600">
+                                                +{formatCurrency(tpia.estimatedProfit || 0)}
+                                                {(tpia.estimatedProfit ?? 0) > 0 && <span className="ml-1 text-xs font-normal text-green-400">est.</span>}
+                                            </span>
+                                        )}
+                                    </td>
                                     <td className="px-6 py-4 text-gray-600">GDC-{tpia.gdcNumber}</td>
                                     <td className="px-6 py-4">
                                         <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${tpia.status === "active" ? "bg-green-100 text-green-700" :
                                             tpia.status === "pending" ? "bg-yellow-100 text-yellow-700" :
                                                 tpia.status === "voided" ? "bg-red-100 text-red-700" :
+                                                tpia.status === "matured" ? "bg-indigo-100 text-indigo-700" :
                                                 "bg-gray-100 text-gray-700"
                                             }`}>
                                             {tpia.status.toUpperCase()}
@@ -341,6 +356,7 @@ export default function AdminTPIAManagementPage() {
                                 <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${tpia.status === "active" ? "bg-green-100 text-green-700" :
                                     tpia.status === "pending" ? "bg-yellow-100 text-yellow-700" :
                                         tpia.status === "voided" ? "bg-red-100 text-red-700" :
+                                        tpia.status === "matured" ? "bg-indigo-100 text-indigo-700" :
                                         "bg-gray-100 text-gray-700"
                                     }`}>
                                     {tpia.status.toUpperCase()}
@@ -353,8 +369,16 @@ export default function AdminTPIAManagementPage() {
                                     <p className="font-bold text-gray-900">{formatCurrency(tpia.purchasePrice)}</p>
                                 </div>
                                 <div>
-                                    <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">Est. Profit</p>
-                                    <p className="font-bold text-green-600">+{formatCurrency(tpia.estimatedProfit || 0)}</p>
+                                    <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">
+                                        {tpia.status === "matured" || ((tpia.cyclesCompleted ?? 0) > 0 && !tpia.estimatedProfit) ? "Total Profit" : "Est. Profit"}
+                                    </p>
+                                    {tpia.status === "matured" || ((tpia.cyclesCompleted ?? 0) > 0 && !tpia.estimatedProfit) ? (
+                                        <p className="font-bold text-indigo-600" title={`Across ${tpia.cyclesCompleted ?? 0} cycle(s)`}>
+                                            +{formatCurrency(tpia.totalProfitEarned || 0)}
+                                        </p>
+                                    ) : (
+                                        <p className="font-bold text-green-600">+{formatCurrency(tpia.estimatedProfit || 0)}</p>
+                                    )}
                                 </div>
                             </div>
 

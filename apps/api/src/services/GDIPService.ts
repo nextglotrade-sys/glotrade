@@ -116,6 +116,16 @@ export class GDIPService {
             throw new Error("Partner not found");
         }
 
+        // Check 1: Account status
+        if (partner.isBlocked) {
+            throw new Error("Account is suspended. Please contact support.");
+        }
+
+        // Check 2: KYC / Verification status for self-service purchases
+        if (!options.skipWalletDebit && !partner.isVerified && partner.kycStatus !== "verified") {
+            throw new Error("KYC verification required for GDIP access. Please complete verification before purchasing TPIAs.");
+        }
+
         // Verify partner has sufficient funds for normal app purchases.
         // Assisted bank-deposit purchases are verified by the manager-provided bank reference instead.
         const wallet = options.skipWalletDebit ? null : await Wallet.findOne({ userId: partnerId });
@@ -127,148 +137,172 @@ export class GDIPService {
         const purchasedAt = new Date();
         const assignedCommodityType = commodityType || await this.getPlatformAssignedCommodityType();
 
-        // We process them one by one to ensure they fill GDCs correctly
-        // but we deduct the total amount once or keep track of balance
-        for (let i = 0; i < quantity; i++) {
-            // Re-fetch GDC each time to ensure we fill sequentially
-            const gdc = await this.findOrCreateAvailableGDC();
+        try {
+            // We process them one by one to ensure they fill GDCs correctly
+            // but we deduct the total amount once or keep track of balance
+            for (let i = 0; i < quantity; i++) {
+                // Re-fetch GDC each time to ensure we fill sequentially
+                const gdc = await this.findOrCreateAvailableGDC();
 
-            //TPIA numbers are now derived formulaically from the GDC cluster number and the slot position ((gdcNumber - 10) + slotPosition).
-            // Formulaic numbering: (GDC-10 starting at 1, GDC-20 starting at 11, etc.)
-            const tpiaNumber = (gdc.gdcNumber - 10) + (gdc.currentFill + 1);
-            const positionInGDC = gdc.currentFill + 1;
+                //TPIA numbers are now derived formulaically from the GDC cluster number and the slot position ((gdcNumber - 10) + slotPosition).
+                // Formulaic numbering: (GDC-10 starting at 1, GDC-20 starting at 11, etc.)
+                const tpiaNumber = (gdc.gdcNumber - 10) + (gdc.currentFill + 1);
+                const positionInGDC = gdc.currentFill + 1;
 
-            const tpia = await TPIA.create({
-                tpiaNumber,
-                partnerId,
-                partnerName: partner.businessInfo?.companyName || `${partner.firstName} ${partner.lastName}`,
-                partnerEmail: partner.email,
-                gdcId: gdc._id,
-                gdcNumber: gdc.gdcNumber,
-                positionInGDC,
-                purchasePrice: unitPrice,
-                currentValue: unitPrice,
-                totalProfitEarned: 0,
-                compoundedValue: 0,
-                cyclesCompleted: 0,
-                profitMode,
-                insuranceCoverageAmount: unitPrice,
-                insuranceStatus: "pending",
-                commodityType: assignedCommodityType,
-                commodityQuantity: 0,
-                commodityUnit: "bags",
-                status: "pending",
-                purchaseSource: options.purchaseSource || "wallet",
-                manualPayment: options.manualPayment ? {
-                    amountReceived: unitPrice,
-                    bankReference: options.manualPayment.bankReference,
-                    depositedAt: options.manualPayment.depositedAt,
-                    recordedBy: options.manualPayment.recordedBy,
-                    recordedAt: purchasedAt,
-                    note: options.manualPayment.note
-                } : undefined,
-                purchasedAt,
-                createdBy: options.createdBy,
-                notes: options.notes,
-                documents: {}
-            });
+                const tpia = await TPIA.create({
+                    tpiaNumber,
+                    partnerId,
+                    partnerName: partner.businessInfo?.companyName || `${partner.firstName} ${partner.lastName}`,
+                    partnerEmail: partner.email,
+                    gdcId: gdc._id,
+                    gdcNumber: gdc.gdcNumber,
+                    positionInGDC,
+                    purchasePrice: unitPrice,
+                    currentValue: unitPrice,
+                    totalProfitEarned: 0,
+                    compoundedValue: 0,
+                    cyclesCompleted: 0,
+                    profitMode,
+                    insuranceCoverageAmount: unitPrice,
+                    insuranceStatus: "pending",
+                    commodityType: assignedCommodityType,
+                    commodityQuantity: 0,
+                    commodityUnit: "bags",
+                    status: "pending",
+                    purchaseSource: options.purchaseSource || "wallet",
+                    manualPayment: options.manualPayment ? {
+                        amountReceived: unitPrice,
+                        bankReference: options.manualPayment.bankReference,
+                        depositedAt: options.manualPayment.depositedAt,
+                        recordedBy: options.manualPayment.recordedBy,
+                        recordedAt: purchasedAt,
+                        note: options.manualPayment.note
+                    } : undefined,
+                    purchasedAt,
+                    createdBy: options.createdBy,
+                    notes: options.notes,
+                    documents: {}
+                });
 
-            // Update GDC
-            gdc.tpiaIds.push(tpia._id);
-            gdc.tpiaNumbers.push(tpiaNumber);
-            gdc.currentFill += 1;
-            gdc.totalCapital += unitPrice;
+                // Update GDC
+                gdc.tpiaIds.push(tpia._id);
+                gdc.tpiaNumbers.push(tpiaNumber);
+                gdc.currentFill += 1;
+                gdc.totalCapital += unitPrice;
 
-            if (gdc.currentFill === 10) {
-                gdc.isFull = true;
-                gdc.status = "ready";
-                gdc.formedAt = new Date();
-                gdc.nextCycleStartDate = new Date(Date.now() + 37 * 24 * 60 * 60 * 1000);
-            }
+                if (gdc.currentFill === 10) {
+                    gdc.isFull = true;
+                    gdc.status = "ready";
+                    gdc.formedAt = new Date();
+                    gdc.nextCycleStartDate = new Date(Date.now() + 37 * 24 * 60 * 60 * 1000);
+                }
 
-            // Save GDC state first to ensure checking logic in createTradeCycle passes
-            await gdc.save();
+                // Save GDC state first to ensure checking logic in createTradeCycle passes
+                await gdc.save();
 
-            if (gdc.currentFill === 10) {
-                // Auto-activate all TPIAs in this GDC
-                await TPIA.updateMany(
-                    { gdcId: gdc._id },
-                    {
-                        $set: {
-                            status: "active",
-                            activatedAt: new Date(),
-                            insuranceStatus: "active"
+                if (gdc.currentFill === 10) {
+                    // Auto-activate all TPIAs in this GDC
+                    await TPIA.updateMany(
+                        { gdcId: gdc._id },
+                        {
+                            $set: {
+                                status: "active",
+                                activatedAt: new Date(),
+                                insuranceStatus: "active"
+                            }
                         }
-                    }
-                );
+                    );
 
-                // Auto-activate all Insurance records in this GDC
-                await Insurance.updateMany(
-                    { tpiaId: { $in: gdc.tpiaIds } },
-                    { $set: { status: "active" } }
-                );
+                    // Auto-activate all Insurance records in this GDC
+                    await Insurance.updateMany(
+                        { tpiaId: { $in: gdc.tpiaIds } },
+                        { $set: { status: "active" } }
+                    );
 
-                // Auto-create the first trade cycle for this GDC
-                // This enables progress visualization immediately
-                await TradeCycleService.createTradeCycle(
-                    gdc._id,
-                    assignedCommodityType,
-                    1000, // Default quantity
-                    gdc.totalCapital,
-                    new Date() // Start immediately
-                );
+                    // Auto-create the first trade cycle for this GDC
+                    // This enables progress visualization immediately
+                    await TradeCycleService.createTradeCycle(
+                        gdc._id,
+                        assignedCommodityType,
+                        1000, // Default quantity
+                        gdc.totalCapital,
+                        new Date() // Start immediately
+                    );
+                }
+
+                // Create insurance record
+                await Insurance.create({
+                    certificateNumber: tpia.insuranceCertificateNumber,
+                    tpiaId: tpia._id,
+                    tpiaNumber,
+                    provider: "Default Insurance Provider",
+                    policyType: "capital_protection",
+                    coverageAmount: unitPrice,
+                    deductible: 0,
+                    premium: unitPrice * 0.02,
+                    issueDate: new Date(),
+                    effectiveDate: new Date(),
+                    expiryDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
+                    status: "pending",
+                    partnerId,
+                    partnerName: tpia.partnerName
+                });
+
+                purchasedTPIAs.push(tpia);
             }
 
-            // Create insurance record
-            await Insurance.create({
-                certificateNumber: tpia.insuranceCertificateNumber,
-                tpiaId: tpia._id,
-                tpiaNumber,
-                provider: "Default Insurance Provider",
-                policyType: "capital_protection",
-                coverageAmount: unitPrice,
-                deductible: 0,
-                premium: unitPrice * 0.02,
-                issueDate: new Date(),
-                effectiveDate: new Date(),
-                expiryDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
-                status: "pending",
-                partnerId,
-                partnerName: tpia.partnerName
-            });
+            const bulkRef = `BULK-TPIA-${Date.now()}`;
 
-            purchasedTPIAs.push(tpia);
-        }
+            if (wallet) {
+                // Deduct total from wallet
+                wallet.balance -= totalPrice;
+                wallet.totalSpent += totalPrice;
+                await wallet.save();
 
-        const bulkRef = `BULK-TPIA-${Date.now()}`;
-
-        if (wallet) {
-            // Deduct total from wallet
-            wallet.balance -= totalPrice;
-            wallet.totalSpent += totalPrice;
-            await wallet.save();
-
-            // Create one bulk wallet transaction
-            await WalletTransaction.create({
-                walletId: wallet._id,
-                userId: partnerId,
-                type: "payment",
-                category: "order_payment",
-                amount: totalPrice,
-                currency: "NGN",
-                balanceBefore: wallet.balance + totalPrice,
-                balanceAfter: wallet.balance,
-                status: "completed",
-                reference: bulkRef,
-                description: `Bulk purchase of ${quantity} TPIA blocks`,
-                metadata: {
-                    quantity,
-                    unitPrice,
-                    tpiaIds: purchasedTPIAs.map(t => t._id.toString()),
-                    idempotencyKey: bulkRef
-                },
-                processedAt: new Date()
-            });
+                // Create one bulk wallet transaction
+                await WalletTransaction.create({
+                    walletId: wallet._id,
+                    userId: partnerId,
+                    type: "payment",
+                    category: "order_payment",
+                    amount: totalPrice,
+                    currency: "NGN",
+                    balanceBefore: wallet.balance + totalPrice,
+                    balanceAfter: wallet.balance,
+                    status: "completed",
+                    reference: bulkRef,
+                    description: `Bulk purchase of ${quantity} TPIA blocks`,
+                    metadata: {
+                        quantity,
+                        unitPrice,
+                        tpiaIds: purchasedTPIAs.map(t => t._id.toString()),
+                        idempotencyKey: bulkRef
+                    },
+                    processedAt: new Date()
+                });
+            }
+        } catch (error: any) {
+            // Clean up any partially created TPIAs and Insurance policies from this failed purchase
+            if (purchasedTPIAs.length > 0) {
+                const purchasedIds = purchasedTPIAs.map(t => t._id);
+                try {
+                    await TPIA.deleteMany({ _id: { $in: purchasedIds } });
+                    await Insurance.deleteMany({ tpiaId: { $in: purchasedIds } });
+                    for (const t of purchasedTPIAs) {
+                        await GDC.updateOne(
+                            { _id: t.gdcId },
+                            {
+                                $pull: { tpiaIds: t._id, tpiaNumbers: t.tpiaNumber },
+                                $inc: { currentFill: -1, totalCapital: -unitPrice },
+                                $set: { isFull: false, status: "forming" }
+                            }
+                        );
+                    }
+                } catch (cleanupError) {
+                    console.error("Error during purchase rollback:", cleanupError);
+                }
+            }
+            throw error;
         }
 
         return purchasedTPIAs;

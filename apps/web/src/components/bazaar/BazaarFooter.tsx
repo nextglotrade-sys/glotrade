@@ -1,26 +1,30 @@
 "use client";
 import Link from "next/link";
-import { Ticket, MapPin, Calendar, Mail, Phone, ExternalLink } from "lucide-react";
+import { MapPin, Calendar, Mail, Phone, ExternalLink, Sparkles } from "lucide-react";
 import { translate } from "@/utils/translate";
 
 export default function BazaarFooter() {
   return (
     <footer className="bg-slate-950 border-t border-amber-500/20 text-slate-400 pt-16 pb-12">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
           {/* Brand Col */}
           <div className="space-y-4">
-            <Link href="/bazaar" className="flex items-center gap-3">
+            <Link href="/trade-fair" className="flex items-center gap-3">
               <div className="w-11 h-11 rounded-xl bg-slate-900 border border-amber-500/40 flex items-center justify-center shadow-md overflow-hidden">
-                {/* <Ticket size={22} /> */}
-                <img src="/bazaar_logo.jpg" alt="GloTrade Bazaar Logo" className="w-full h-full object-cover" />
+                <img src="/bazaar_logo.jpg" alt="GloTrade International Trade Fair Logo" className="w-full h-full object-cover" />
               </div>
-              <span className="text-lg font-bold text-white tracking-tight">
-                GLOTRADE BAZAAR
-              </span>
+              <div>
+                <span className="text-lg font-bold text-white tracking-tight block">
+                  GLOTRADE TRADE FAIR
+                </span>
+                <span className="text-[10px] uppercase tracking-widest text-amber-400/70 font-medium">
+                  International Trade Fair 2026
+                </span>
+              </div>
             </Link>
             <p className="text-sm text-slate-400 leading-relaxed">
-              {translate("bazaar.footerDesc") || "The premier annual trade, networking, and cultural celebration in Abuja. Connecting innovative businesses, vendors, and vibrant attendees."}
+              {translate("bazaar.footerDesc") || "West Africa's premier international trade fair and investment expo. Connecting global buyers, MSMEs, investors, and industry leaders in Abuja."}
             </p>
             <div className="flex items-center gap-2 text-xs text-amber-400 font-semibold pt-2">
               <span>{translate("bazaar.presentedBy") || "Presented by"}</span>
@@ -42,32 +46,38 @@ export default function BazaarFooter() {
             </h3>
             <ul className="space-y-2.5 text-sm">
               <li>
-                <Link href="/bazaar/about" className="hover:text-amber-400 transition-colors">
+                <Link href="/trade-fair/about" className="hover:text-amber-400 transition-colors">
                   {translate("bazaar.navAbout") || "About the Event"}
                 </Link>
               </li>
               <li>
-                <Link href="/bazaar/tickets" className="hover:text-amber-400 transition-colors">
-                  {translate("bazaar.navTickets") || "Ticket Packages & Passes"}
+                <Link href="/trade-fair/tickets" className="hover:text-amber-400 transition-colors">
+                  {translate("bazaar.navTickets") || "Free Passes & Admission"}
                 </Link>
               </li>
               <li>
-                <Link href="/bazaar/exhibitors" className="hover:text-amber-400 transition-colors">
+                <Link href="/trade-fair/exhibitors" className="hover:text-amber-400 transition-colors">
                   {translate("bazaar.navExhibitors") || "Exhibitor Stall Booking"}
                 </Link>
               </li>
               <li>
-                <Link href="/bazaar/sponsorship" className="hover:text-amber-400 transition-colors">
+                <Link href="/trade-fair/promoter" className="text-amber-400 font-semibold hover:text-amber-300 transition-colors flex items-center gap-1.5">
+                  <Sparkles size={14} className="text-amber-400" />
+                  <span>Promoter Program (Earn 5%)</span>
+                </Link>
+              </li>
+              <li>
+                <Link href="/trade-fair/sponsorship" className="hover:text-amber-400 transition-colors">
                   {translate("bazaar.navSponsorship") || "Sponsorship Packages"}
                 </Link>
               </li>
               <li>
-                <Link href="/bazaar/programme" className="hover:text-amber-400 transition-colors">
+                <Link href="/trade-fair/programme" className="hover:text-amber-400 transition-colors">
                   {translate("bazaar.navProgramme") || "Programme Timeline"}
                 </Link>
               </li>
               <li>
-                <Link href="/bazaar/terms" className="text-amber-400/90 hover:text-amber-300 transition-colors font-medium">
+                <Link href="/trade-fair/terms" className="text-amber-400/90 hover:text-amber-300 transition-colors font-medium">
                   {translate("bazaar.navTermsPolicy") || "Terms & Refund Policy"}
                 </Link>
               </li>
@@ -83,15 +93,16 @@ export default function BazaarFooter() {
               <li className="flex items-start gap-3">
                 <Calendar size={18} className="text-amber-400 shrink-0 mt-0.5" />
                 <div>
-                  <p className="text-white font-medium">{translate("bazaar.eventDate") || "12 September 2026"}</p>
-                  <p className="text-xs text-slate-500">Starts 9:00 AM till late</p>
+                  <p className="text-white font-medium">{translate("bazaar.eventDate") || "1st – 5th December 2026"}</p>
+                  <p className="text-xs text-slate-500">Daily 9:00 AM - 6:00 PM</p>
                 </div>
               </li>
               <li className="flex items-start gap-3">
                 <MapPin size={18} className="text-amber-400 shrink-0 mt-0.5" />
                 <div>
-                  <p className="text-white font-medium">{translate("bazaar.eventVenue") || "Harrow Park, Abuja"}</p>
-                  <p className="text-xs text-slate-500">Central Business District, FCT</p>
+                  <p className="text-white font-medium">Nigerian Army Conference Centre &amp; Suites (NACCAS)</p>
+                  <p className="text-xs text-slate-400">Km 10 Expressway, Asokoro, Abuja</p>
+                  <p className="text-xs text-slate-500">Federal Capital Territory, Nigeria</p>
                 </div>
               </li>
             </ul>
@@ -105,20 +116,26 @@ export default function BazaarFooter() {
             <ul className="space-y-3 text-sm">
               <li className="flex items-center gap-3">
                 <Mail size={16} className="text-amber-400 shrink-0" />
-                <a href="mailto:glotradebazaar@glotrade.online" className="hover:text-amber-400">
-                  glotradebazaar@glotrade.online
+                <a href="mailto:tradefair@glotrade.online" className="hover:text-amber-400">
+                  tradefair@glotrade.online
                 </a>
               </li>
               <li className="flex items-center gap-3">
                 <Phone size={16} className="text-amber-400 shrink-0" />
                 <a href="https://wa.me/2347044600924" target="_blank" rel="noreferrer" className="hover:text-amber-400">
-                  +234 704 460 0924 (WhatsApp)
+                  +234 704 460 0924
+                </a>
+              </li>
+              <li className="flex items-center gap-3">
+                <Phone size={16} className="text-amber-400 shrink-0" />
+                <a href="tel:+2349029004712" className="hover:text-amber-400">
+                  +234 902 900 4712
                 </a>
               </li>
             </ul>
             <div className="mt-6 pt-4 border-t border-slate-800">
               <Link
-                href="/bazaar/contact"
+                href="/trade-fair/contact"
                 className="inline-block text-xs font-bold text-slate-950 bg-amber-400 hover:bg-amber-300 px-4 py-2 rounded-lg transition-colors"
               >
                 {translate("bazaar.sendMessageCta") || "Send Us a Message"}
@@ -129,9 +146,9 @@ export default function BazaarFooter() {
 
         <div className="mt-12 pt-8 border-t border-slate-800 text-center text-xs text-slate-500 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-4">
-            <p>© {new Date().getFullYear()} GloTrade Platform. All rights reserved.</p>
+            <p>© {new Date().getFullYear()} GloTrade International Trade Fair. All rights reserved.</p>
             <span>•</span>
-            <Link href="/bazaar/terms" className="text-slate-400 hover:text-amber-400 transition-colors underline">
+            <Link href="/trade-fair/terms" className="text-slate-400 hover:text-amber-400 transition-colors underline">
               Terms & Non-Refundable Policy
             </Link>
           </div>

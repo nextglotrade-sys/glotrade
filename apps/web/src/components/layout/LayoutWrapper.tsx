@@ -11,12 +11,13 @@ export default function LayoutWrapper({
 }) {
     const pathname = usePathname();
 
-    // Hide main e-commerce headers/footers on admin and standalone bazaar event pages
+    // Hide main e-commerce headers/footers on admin and standalone event pages (Trade Fair / Bazaar)
     const isAdminPage = pathname?.startsWith("/admin");
     const isBazaarPage = pathname?.startsWith("/bazaar");
+    const isTradeFairPage = pathname?.startsWith("/trade-fair") || pathname?.startsWith("/tradefair");
 
-    if (isAdminPage || isBazaarPage) {
-        // Admin and Bazaar pages render full-screen with their own dedicated layouts
+    if (isAdminPage || isBazaarPage || isTradeFairPage) {
+        // Admin and Trade Fair / Bazaar pages render full-screen with their own dedicated layouts
         return <>{children}</>;
     }
 

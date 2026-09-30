@@ -33,3 +33,4 @@ export { default as WalletTransaction } from "./WalletTransaction";
 export { default as WithdrawalRequest } from "./WithdrawalRequest";
 export { default as BazaarConfig } from "./BazaarConfig";
 export { default as BazaarBooking } from "./BazaarBooking";
+export { default as BazaarPromoter } from "./BazaarPromoter";

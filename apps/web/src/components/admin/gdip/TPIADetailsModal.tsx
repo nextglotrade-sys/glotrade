@@ -247,12 +247,13 @@ export default function TPIADetailsModal({ tpiaId, onClose, onChanged }: TPIADet
                         <div className={`p-4 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${data.tpia.status === "active" ? "bg-green-50 border border-green-100" :
                             data.tpia.status === "pending" ? "bg-yellow-50 border border-yellow-100" :
                                 data.tpia.status === "voided" ? "bg-red-50 border border-red-100" :
+                                data.tpia.status === "matured" ? "bg-indigo-50 border border-indigo-100" :
                                 "bg-gray-50 border border-gray-100"
                             }`}>
                             <div className="flex items-center gap-3">
-                                <div className={`p-2.5 rounded-xl ${data.tpia.status === "active" ? "bg-green-100" : data.tpia.status === "voided" ? "bg-red-100" : "bg-yellow-100"
+                                <div className={`p-2.5 rounded-xl ${data.tpia.status === "active" ? "bg-green-100" : data.tpia.status === "voided" ? "bg-red-100" : data.tpia.status === "matured" ? "bg-indigo-100" : "bg-yellow-100"
                                     }`}>
-                                    <Shield className={`w-5 h-5 ${data.tpia.status === "active" ? "text-green-600" : data.tpia.status === "voided" ? "text-red-600" : "text-yellow-600"
+                                    <Shield className={`w-5 h-5 ${data.tpia.status === "active" ? "text-green-600" : data.tpia.status === "voided" ? "text-red-600" : data.tpia.status === "matured" ? "text-indigo-600" : "text-yellow-600"
                                         }`} />
                                 </div>
                                 <div className="space-y-0.5">
@@ -260,6 +261,8 @@ export default function TPIADetailsModal({ tpiaId, onClose, onChanged }: TPIADet
                                     <p className="text-xs sm:text-sm text-gray-600">
                                         {data.tpia.status === "voided"
                                             ? "Manual purchase voided"
+                                            : data.tpia.status === "matured"
+                                            ? "All cycles completed — capital matured"
                                             : isCycleActive
                                             ? translate("gdip.admin.tpiaDetails.cycleActive")
                                             : data.currentCycle
@@ -319,8 +322,18 @@ export default function TPIADetailsModal({ tpiaId, onClose, onChanged }: TPIADet
                                 </h3>
                                 <div className="bg-gray-50 rounded-xl p-4 space-y-3">
                                     <div className="flex justify-between text-sm">
-                                        <span className="text-gray-500">{translate("gdip.common.accruedProfit")}</span>
-                                        <span className="font-bold text-green-600">+{formatCurrency(data.tpia.estimatedProfit || 0)}</span>
+                                        <span className="text-gray-500">
+                                            {data.tpia.status === "matured" || (data.tpia.cyclesCompleted > 0 && !data.tpia.estimatedProfit)
+                                                ? translate("gdip.common.accruedProfit").replace("Accrued", "Total")
+                                                : translate("gdip.common.accruedProfit")}
+                                        </span>
+                                        {data.tpia.status === "matured" || (data.tpia.cyclesCompleted > 0 && !data.tpia.estimatedProfit) ? (
+                                            <span className="font-bold text-indigo-600" title={`Across ${data.tpia.cyclesCompleted} cycle(s)`}>
+                                                +{formatCurrency(data.tpia.totalProfitEarned || 0)}
+                                            </span>
+                                        ) : (
+                                            <span className="font-bold text-green-600">+{formatCurrency(data.tpia.estimatedProfit || 0)}</span>
+                                        )}
                                     </div>
                                     <div className="flex justify-between text-sm">
                                         <span className="text-gray-500">Cycles Completed</span>
@@ -335,9 +348,17 @@ export default function TPIADetailsModal({ tpiaId, onClose, onChanged }: TPIADet
                                     {!isCycleActive && (
                                         <div className="flex justify-between text-sm">
                                             <span className="text-gray-500">Cycle Status</span>
-                                            <span className="font-medium text-amber-700">
+                                            <span className={`font-medium ${
+                                                data.currentCycle
+                                                    ? "text-amber-700"
+                                                    : data.tpia.status === "active" && (data.gdc.status === "ready" || data.gdc.status === "active")
+                                                    ? "text-blue-600"
+                                                    : "text-amber-700"
+                                            }`}>
                                                 {data.currentCycle
                                                     ? translate("gdip.admin.tpiaDetails.cycleStatusNotAccruing", { status: data.currentCycle.status })
+                                                    : data.tpia.status === "active" && (data.gdc.status === "ready" || data.gdc.status === "active")
+                                                    ? `Awaiting next cycle (${data.tpia.cyclesCompleted} completed)`
                                                     : translate("gdip.common.waitingForGDC")}
                                             </span>
                                         </div>

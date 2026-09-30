@@ -157,13 +157,13 @@ export default function UpperHeader() {
         <div className="flex items-center gap-2 sm:gap-4 md:gap-5 text-white text-[10px] sm:text-xs md:text-sm font-semibold whitespace-nowrap">
           {bazaarActive !== false && (
             <Link
-              href="/bazaar"
+              href="/trade-fair"
               target="_blank"
               rel="noopener noreferrer"
               className="bg-amber-500 hover:bg-amber-400 text-slate-950 px-2 py-0.5 sm:px-3 sm:py-1 rounded-full whitespace-nowrap inline-flex items-center gap-1 sm:gap-1.5 transition-all hover:scale-105 font-bold shadow-sm shrink-0"
             >
               <span>🎟️</span>
-              <span className="hidden xs:inline sm:inline">GloTrade</span> Bazaar
+              <span className="hidden xs:inline sm:inline">Trade Fair</span> 2026
             </Link>
           )}
 

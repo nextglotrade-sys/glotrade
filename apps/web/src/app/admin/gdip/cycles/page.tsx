@@ -6,6 +6,7 @@ import AdminLayout from "@/components/admin/AdminLayout";
 import { apiGet, apiPost } from "@/utils/api";
 import { formatCurrency } from "@/utils/format";
 import { translate } from "@/utils/translate";
+import { Play, X, AlertCircle, CheckCircle2, Loader2, DollarSign, TrendingUp, Coins, Calculator, CheckCircle } from "lucide-react";
 
 interface TradeCycle {
     _id: string;
@@ -33,6 +34,20 @@ export default function AdminCyclesPage() {
     const [filteredCycles, setFilteredCycles] = useState<TradeCycle[]>([]);
     const [statusFilter, setStatusFilter] = useState<string>("all");
     const [processingCycle, setProcessingCycle] = useState<string | null>(null);
+
+    // Modal states
+    const [cycleToStart, setCycleToStart] = useState<TradeCycle | null>(null);
+    const [modalError, setModalError] = useState<string | null>(null);
+
+    const [cycleToComplete, setCycleToComplete] = useState<TradeCycle | null>(null);
+    const [completeSalePrice, setCompleteSalePrice] = useState<string>("");
+    const [completeTradingCosts, setCompleteTradingCosts] = useState<string>("0");
+    const [completeModalError, setCompleteModalError] = useState<string | null>(null);
+
+    const [cycleToDistribute, setCycleToDistribute] = useState<TradeCycle | null>(null);
+    const [distributeModalError, setDistributeModalError] = useState<string | null>(null);
+
+    const [actionToast, setActionToast] = useState<{ type: "success" | "error"; message: string } | null>(null);
 
     useEffect(() => {
         fetchCycles();
@@ -66,49 +81,133 @@ export default function AdminCyclesPage() {
         }
     };
 
-    const handleCompleteCycle = async (cycleId: string) => {
-        const salePrice = prompt("Enter sale price (₦):");
-        if (!salePrice) return;
+    const handleOpenCompleteModal = (cycle: TradeCycle) => {
+        setCycleToComplete(cycle);
+        // Pre-fill target 5% sale price (capital * 1.05)
+        const targetProfit = cycle.totalCapital * ((cycle.targetProfitRate || 5) / 100);
+        const suggestedSale = cycle.totalCapital + targetProfit;
+        setCompleteSalePrice(suggestedSale.toString());
+        setCompleteTradingCosts("0");
+        setCompleteModalError(null);
+    };
 
-        const tradingCosts = prompt("Enter trading costs (₦, optional):");
+    const executeCompleteCycle = async () => {
+        if (!cycleToComplete) return;
+
+        const sale = parseFloat(completeSalePrice);
+        const costs = parseFloat(completeTradingCosts || "0");
+
+        if (isNaN(sale) || sale <= 0) {
+            setCompleteModalError("Please enter a valid sale price greater than ₦0");
+            return;
+        }
+
+        if (isNaN(costs) || costs < 0) {
+            setCompleteModalError("Trading costs cannot be negative");
+            return;
+        }
 
         try {
-            setProcessingCycle(cycleId);
+            setProcessingCycle(cycleToComplete._id);
+            setCompleteModalError(null);
             await apiPost(
-                `/api/v1/gdip/admin/cycle/${cycleId}/complete`,
+                `/api/v1/gdip/admin/cycle/${cycleToComplete._id}/complete`,
                 {
-                    salePrice: parseFloat(salePrice),
-                    tradingCosts: tradingCosts ? parseFloat(tradingCosts) : 0,
+                    salePrice: sale,
+                    tradingCosts: costs,
                 }
             );
 
-            alert("Cycle completed successfully!");
+            const completedId = cycleToComplete.cycleId;
+            setCycleToComplete(null);
+            setActionToast({
+                type: "success",
+                message: `Trade Cycle ${completedId} has been successfully completed! You can now distribute profits.`
+            });
             fetchCycles();
+            setTimeout(() => setActionToast(null), 5000);
         } catch (err: any) {
             console.error("Error completing cycle:", err);
-            alert(err.message || "Failed to complete cycle");
+            setCompleteModalError(err.message || "Failed to complete trade cycle");
         } finally {
             setProcessingCycle(null);
         }
     };
 
-    const handleDistributeProfits = async (cycleId: string) => {
-        if (!confirm("Are you sure you want to distribute profits for this cycle?")) return;
+    const executeStartCycle = async () => {
+        if (!cycleToStart) return;
 
         try {
-            setProcessingCycle(cycleId);
+            setProcessingCycle(cycleToStart._id);
+            setModalError(null);
             await apiPost(
-                `/api/v1/gdip/admin/cycle/${cycleId}/distribute`
+                `/api/v1/gdip/admin/cycle/${cycleToStart._id}/start`,
+                {}
             );
 
-            alert("Profits distributed successfully!");
+            const startedName = cycleToStart.cycleId;
+            setCycleToStart(null);
+            setActionToast({
+                type: "success",
+                message: `Trade Cycle ${startedName} has been successfully started and is now active!`
+            });
             fetchCycles();
+            setTimeout(() => setActionToast(null), 5000);
         } catch (err: any) {
-            console.error("Error distributing profits:", err);
-            alert(err.message || "Failed to distribute profits");
+            console.error("Error starting cycle:", err);
+            setModalError(err.message || "Failed to start trade cycle");
         } finally {
             setProcessingCycle(null);
         }
+    };
+
+    const handleOpenDistributeModal = (cycle: TradeCycle) => {
+        setCycleToDistribute(cycle);
+        setDistributeModalError(null);
+    };
+
+    const executeDistributeProfits = async () => {
+        if (!cycleToDistribute) return;
+
+        try {
+            setProcessingCycle(cycleToDistribute._id);
+            setDistributeModalError(null);
+            await apiPost(
+                `/api/v1/gdip/admin/cycle/${cycleToDistribute._id}/distribute`,
+                {}
+            );
+
+            const distributedId = cycleToDistribute.cycleId;
+            setCycleToDistribute(null);
+            setActionToast({
+                type: "success",
+                message: `Profits for Trade Cycle ${distributedId} have been distributed successfully!`
+            });
+            fetchCycles();
+            setTimeout(() => setActionToast(null), 5000);
+        } catch (err: any) {
+            console.error("Error distributing profits:", err);
+            setDistributeModalError(err.message || "Failed to distribute profits");
+        } finally {
+            setProcessingCycle(null);
+        }
+    };
+
+    const getCompleteCalculations = () => {
+        if (!cycleToComplete) return { netProfit: 0, actualROI: 0, profitPerTPIA: 0, rating: "poor" as const };
+        const sale = parseFloat(completeSalePrice) || 0;
+        const costs = parseFloat(completeTradingCosts) || 0;
+        const capital = cycleToComplete.totalCapital || 10000000;
+        const netProfit = sale - (capital + costs);
+        const actualROI = capital > 0 ? (netProfit / capital) * 100 : 0;
+        const profitPerTPIA = cycleToComplete.tpiaCount > 0 ? netProfit / cycleToComplete.tpiaCount : 0;
+
+        let rating: "excellent" | "good" | "average" | "poor" = "poor";
+        if (actualROI >= 5) rating = "excellent";
+        else if (actualROI >= 3) rating = "good";
+        else if (actualROI >= 1) rating = "average";
+
+        return { netProfit, actualROI, profitPerTPIA, rating };
     };
 
 
@@ -194,6 +293,32 @@ export default function AdminCyclesPage() {
                     </div>
                 </div>
 
+                {/* Feedback Toast Notification */}
+                {actionToast && (
+                    <div
+                        className={`mb-6 p-4 rounded-2xl border flex items-center justify-between gap-3 shadow-sm transition-all ${
+                            actionToast.type === "success"
+                                ? "bg-emerald-50/90 border-emerald-200 text-emerald-800"
+                                : "bg-red-50/90 border-red-200 text-red-800"
+                        }`}
+                    >
+                        <div className="flex items-center gap-3">
+                            {actionToast.type === "success" ? (
+                                <CheckCircle2 className="w-5 h-5 text-emerald-600 flex-shrink-0" />
+                            ) : (
+                                <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0" />
+                            )}
+                            <p className="text-xs sm:text-sm font-bold">{actionToast.message}</p>
+                        </div>
+                        <button
+                            onClick={() => setActionToast(null)}
+                            className="p-1 rounded-lg hover:bg-black/5 text-gray-500 hover:text-gray-700 transition-colors"
+                        >
+                            <X className="w-4 h-4" />
+                        </button>
+                    </div>
+                )}
+
                 {/* Stats */}
                 {cycles.length > 0 && (
                     <div className="grid grid-cols-2 md:grid-cols-5 gap-3 sm:gap-4 mb-10">
@@ -277,22 +402,37 @@ export default function AdminCyclesPage() {
                                     </div>
 
                                     <div className="flex flex-row gap-3">
+                                        {cycle.status === "scheduled" && (
+                                            <button
+                                                onClick={() => {
+                                                    setModalError(null);
+                                                    setCycleToStart(cycle);
+                                                }}
+                                                disabled={processingCycle === cycle._id}
+                                                className="flex-1 sm:flex-none px-6 py-2.5 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 transition-all shadow-md shadow-emerald-100 disabled:opacity-50 text-xs font-black uppercase tracking-widest active:scale-95 whitespace-nowrap flex items-center justify-center gap-1.5"
+                                            >
+                                                <Play className="w-3.5 h-3.5 fill-current" />
+                                                <span>Start Cycle</span>
+                                            </button>
+                                        )}
                                         {cycle.status === "active" && (
                                             <button
-                                                onClick={() => handleCompleteCycle(cycle._id)}
+                                                onClick={() => handleOpenCompleteModal(cycle)}
                                                 disabled={processingCycle === cycle._id}
-                                                className="flex-1 sm:flex-none px-6 py-2.5 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all shadow-md shadow-blue-100 disabled:opacity-50 text-xs font-black uppercase tracking-widest active:scale-95 whitespace-nowrap"
+                                                className="flex-1 sm:flex-none px-6 py-2.5 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all shadow-md shadow-blue-100 disabled:opacity-50 text-xs font-black uppercase tracking-widest active:scale-95 whitespace-nowrap flex items-center justify-center gap-1.5"
                                             >
-                                                {processingCycle === cycle._id ? "Processing..." : "Complete Cycle"}
+                                                <CheckCircle className="w-3.5 h-3.5" />
+                                                <span>Complete Cycle</span>
                                             </button>
                                         )}
                                         {cycle.status === "processing" && !cycle.profitDistributed && (
                                             <button
-                                                onClick={() => handleDistributeProfits(cycle._id)}
+                                                onClick={() => handleOpenDistributeModal(cycle)}
                                                 disabled={processingCycle === cycle._id}
-                                                className="flex-1 sm:flex-none px-6 py-2.5 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-all shadow-md shadow-green-100 disabled:opacity-50 text-xs font-black uppercase tracking-widest active:scale-95 whitespace-nowrap"
+                                                className="flex-1 sm:flex-none px-6 py-2.5 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-all shadow-md shadow-green-100 disabled:opacity-50 text-xs font-black uppercase tracking-widest active:scale-95 whitespace-nowrap flex items-center justify-center gap-1.5"
                                             >
-                                                {processingCycle === cycle._id ? "Distributing..." : "Distribute Profits"}
+                                                <Coins className="w-3.5 h-3.5" />
+                                                <span>Distribute Profits</span>
                                             </button>
                                         )}
                                         <button
@@ -396,6 +536,393 @@ export default function AdminCyclesPage() {
                     ))}
                 </div>
             </div>
+
+            {/* Custom Start Cycle Confirmation Modal */}
+            {cycleToStart && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm transition-opacity">
+                    <div className="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl border border-gray-100 overflow-hidden transform transition-all">
+                        {/* Modal Header */}
+                        <div className="flex items-center justify-between p-6 border-b border-gray-100 bg-gradient-to-r from-emerald-50/70 via-white to-white">
+                            <div className="flex items-center gap-3">
+                                <div className="w-11 h-11 rounded-2xl bg-emerald-600 flex items-center justify-center text-white shadow-lg shadow-emerald-200">
+                                    <Play className="w-5 h-5 fill-current ml-0.5" />
+                                </div>
+                                <div>
+                                    <h3 className="text-lg font-black text-gray-900 tracking-tight">Start Trade Cycle</h3>
+                                    <p className="text-xs text-gray-500 font-semibold">{cycleToStart.cycleId} • GDC-{cycleToStart.gdcNumber}</p>
+                                </div>
+                            </div>
+                            <button
+                                onClick={() => {
+                                    if (!processingCycle) {
+                                        setCycleToStart(null);
+                                        setModalError(null);
+                                    }
+                                }}
+                                disabled={!!processingCycle}
+                                className="p-2 text-gray-400 hover:text-gray-600 rounded-xl hover:bg-gray-100 transition-colors disabled:opacity-50"
+                            >
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
+
+                        {/* Modal Body */}
+                        <div className="p-6 space-y-5">
+                            <div>
+                                <h4 className="text-base font-bold text-gray-900 leading-snug">
+                                    Are you sure you want to start this trade cycle now?
+                                </h4>
+                                <p className="text-xs text-gray-500 mt-1.5 leading-relaxed">
+                                    Activating this cycle will lock the commodity allocation, transition the status from <span className="font-bold text-amber-600">Scheduled</span> to <span className="font-bold text-emerald-600">Active</span>, and begin the 37-day countdown for partner ROI accrual.
+                                </p>
+                            </div>
+
+                            {/* Cycle Details Card */}
+                            <div className="bg-gray-50/80 rounded-2xl p-4 border border-gray-100 grid grid-cols-2 gap-4 text-xs">
+                                <div>
+                                    <span className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">Cluster Batch</span>
+                                    <p className="font-black text-gray-900 text-sm mt-0.5">GDC-{cycleToStart.gdcNumber}</p>
+                                </div>
+                                <div>
+                                    <span className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">Participating TPIAs</span>
+                                    <p className="font-black text-gray-900 text-sm mt-0.5">{cycleToStart.tpiaCount} Blocks (Full)</p>
+                                </div>
+                                <div>
+                                    <span className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">Total Capital Pool</span>
+                                    <p className="font-black text-gray-900 text-sm mt-0.5">{formatCurrency(cycleToStart.totalCapital)}</p>
+                                </div>
+                                <div>
+                                    <span className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">Target Return</span>
+                                    <p className="font-black text-emerald-600 text-sm mt-0.5">{cycleToStart.targetProfitRate}% (37 Days)</p>
+                                </div>
+                            </div>
+
+                            {modalError && (
+                                <div className="p-3.5 bg-red-50 border border-red-100 rounded-2xl flex items-start gap-2.5 text-xs text-red-700 font-medium">
+                                    <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0 mt-0.5" />
+                                    <span>{modalError}</span>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Modal Footer / Actions */}
+                        <div className="p-6 bg-gray-50/50 border-t border-gray-100 flex items-center justify-end gap-3">
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setCycleToStart(null);
+                                    setModalError(null);
+                                }}
+                                disabled={!!processingCycle}
+                                className="px-5 py-2.5 text-xs font-bold text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-xl transition-all disabled:opacity-50"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                type="button"
+                                onClick={executeStartCycle}
+                                disabled={!!processingCycle}
+                                className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black uppercase tracking-wider rounded-xl shadow-lg shadow-emerald-200 transition-all flex items-center gap-2 active:scale-95 disabled:opacity-50"
+                            >
+                                {processingCycle ? (
+                                    <>
+                                        <Loader2 className="w-4 h-4 animate-spin" />
+                                        <span>Starting...</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <Play className="w-3.5 h-3.5 fill-current" />
+                                        <span>Yes, Start Cycle</span>
+                                    </>
+                                )}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Custom Complete Cycle Modal */}
+            {cycleToComplete && (() => {
+                const calcs = getCompleteCalculations();
+                const targetProfit = cycleToComplete.totalCapital * ((cycleToComplete.targetProfitRate || 5) / 100);
+                const defaultTargetSale = cycleToComplete.totalCapital + targetProfit;
+
+                return (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm transition-opacity">
+                        <div className="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl border border-gray-100 overflow-hidden transform transition-all">
+                            {/* Modal Header */}
+                            <div className="flex items-center justify-between p-6 border-b border-gray-100 bg-gradient-to-r from-blue-50/70 via-white to-white">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-11 h-11 rounded-2xl bg-blue-600 flex items-center justify-center text-white shadow-lg shadow-blue-200">
+                                        <CheckCircle className="w-5 h-5" />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-lg font-black text-gray-900 tracking-tight">Complete Trade Cycle</h3>
+                                        <p className="text-xs text-gray-500 font-semibold">{cycleToComplete.cycleId} • GDC-{cycleToComplete.gdcNumber}</p>
+                                    </div>
+                                </div>
+                                <button
+                                    onClick={() => {
+                                        if (!processingCycle) {
+                                            setCycleToComplete(null);
+                                            setCompleteModalError(null);
+                                        }
+                                    }}
+                                    disabled={!!processingCycle}
+                                    className="p-2 text-gray-400 hover:text-gray-600 rounded-xl hover:bg-gray-100 transition-colors disabled:opacity-50"
+                                >
+                                    <X className="w-5 h-5" />
+                                </button>
+                            </div>
+
+                            {/* Modal Body */}
+                            <div className="p-6 space-y-5">
+                                <p className="text-xs text-gray-500 leading-relaxed">
+                                    Enter final commodity sales proceeds and any logistics or handling costs to settle the trade cycle and calculate final profits.
+                                </p>
+
+                                {/* Quick Helper Button */}
+                                <div className="flex items-center justify-between bg-blue-50/60 p-3.5 rounded-2xl border border-blue-100">
+                                    <div>
+                                        <span className="text-[10px] font-bold text-blue-600 uppercase tracking-wider block">Target 5% Baseline</span>
+                                        <p className="text-xs font-black text-blue-900">{formatCurrency(defaultTargetSale)}</p>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setCompleteSalePrice(defaultTargetSale.toString());
+                                            setCompleteTradingCosts("0");
+                                        }}
+                                        className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition-all shadow-sm active:scale-95"
+                                    >
+                                        Auto-Fill 5%
+                                    </button>
+                                </div>
+
+                                {/* Inputs */}
+                                <div className="space-y-4">
+                                    <div>
+                                        <label className="block text-xs font-bold text-gray-700 uppercase tracking-tight mb-1.5">
+                                            Gross Sale Proceeds (₦) <span className="text-red-500">*</span>
+                                        </label>
+                                        <div className="relative">
+                                            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-bold text-sm">₦</span>
+                                            <input
+                                                type="number"
+                                                min="0"
+                                                step="1000"
+                                                value={completeSalePrice}
+                                                onChange={(e) => setCompleteSalePrice(e.target.value)}
+                                                placeholder="e.g. 10500000"
+                                                className="w-full pl-9 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl text-sm font-bold text-gray-900 focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none transition-all"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-xs font-bold text-gray-700 uppercase tracking-tight mb-1.5">
+                                            Trading / Logistics Costs (₦, optional)
+                                        </label>
+                                        <div className="relative">
+                                            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-bold text-sm">₦</span>
+                                            <input
+                                                type="number"
+                                                min="0"
+                                                step="1000"
+                                                value={completeTradingCosts}
+                                                onChange={(e) => setCompleteTradingCosts(e.target.value)}
+                                                placeholder="0"
+                                                className="w-full pl-9 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl text-sm font-bold text-gray-900 focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none transition-all"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Live Profit Calculation Preview */}
+                                <div className="bg-gray-50/90 rounded-2xl p-4 border border-gray-100 space-y-2.5">
+                                    <div className="flex items-center justify-between text-xs">
+                                        <span className="text-gray-400 font-bold uppercase tracking-wider text-[10px]">Net Cycle Profit</span>
+                                        <span className={`font-black text-sm ${calcs.netProfit >= 0 ? "text-emerald-600" : "text-red-600"}`}>
+                                            {calcs.netProfit >= 0 ? "+" : ""}{formatCurrency(calcs.netProfit)}
+                                        </span>
+                                    </div>
+                                    <div className="flex items-center justify-between text-xs">
+                                        <span className="text-gray-400 font-bold uppercase tracking-wider text-[10px]">Actual ROI</span>
+                                        <div className="flex items-center gap-2">
+                                            <span className={`font-black text-sm ${calcs.actualROI >= 0 ? "text-emerald-600" : "text-red-600"}`}>
+                                                {calcs.actualROI.toFixed(2)}%
+                                            </span>
+                                            <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider ${
+                                                calcs.rating === "excellent"
+                                                    ? "bg-emerald-100 text-emerald-800"
+                                                    : calcs.rating === "good"
+                                                    ? "bg-blue-100 text-blue-800"
+                                                    : calcs.rating === "average"
+                                                    ? "bg-amber-100 text-amber-800"
+                                                    : "bg-red-100 text-red-800"
+                                            }`}>
+                                                {calcs.rating}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center justify-between text-xs pt-1.5 border-t border-gray-200/60">
+                                        <span className="text-gray-400 font-bold uppercase tracking-wider text-[10px]">Estimated Profit per TPIA</span>
+                                        <span className="font-bold text-gray-700">
+                                            {formatCurrency(calcs.profitPerTPIA)}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                {completeModalError && (
+                                    <div className="p-3.5 bg-red-50 border border-red-100 rounded-2xl flex items-start gap-2.5 text-xs text-red-700 font-medium">
+                                        <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0 mt-0.5" />
+                                        <span>{completeModalError}</span>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Modal Footer / Actions */}
+                            <div className="p-6 bg-gray-50/50 border-t border-gray-100 flex items-center justify-end gap-3">
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setCycleToComplete(null);
+                                        setCompleteModalError(null);
+                                    }}
+                                    disabled={!!processingCycle}
+                                    className="px-5 py-2.5 text-xs font-bold text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-xl transition-all disabled:opacity-50"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={executeCompleteCycle}
+                                    disabled={!!processingCycle}
+                                    className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-black uppercase tracking-wider rounded-xl shadow-lg shadow-blue-200 transition-all flex items-center gap-2 active:scale-95 disabled:opacity-50"
+                                >
+                                    {processingCycle ? (
+                                        <>
+                                            <Loader2 className="w-4 h-4 animate-spin" />
+                                            <span>Completing...</span>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <CheckCircle className="w-3.5 h-3.5" />
+                                            <span>Complete Cycle</span>
+                                        </>
+                                    )}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                );
+            })()}
+
+            {/* Custom Distribute Profits Modal */}
+            {cycleToDistribute && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm transition-opacity">
+                    <div className="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl border border-gray-100 overflow-hidden transform transition-all">
+                        {/* Modal Header */}
+                        <div className="flex items-center justify-between p-6 border-b border-gray-100 bg-gradient-to-r from-emerald-50/70 via-white to-white">
+                            <div className="flex items-center gap-3">
+                                <div className="w-11 h-11 rounded-2xl bg-emerald-600 flex items-center justify-center text-white shadow-lg shadow-emerald-200">
+                                    <Coins className="w-5 h-5" />
+                                </div>
+                                <div>
+                                    <h3 className="text-lg font-black text-gray-900 tracking-tight">Distribute Profits</h3>
+                                    <p className="text-xs text-gray-500 font-semibold">{cycleToDistribute.cycleId} • GDC-{cycleToDistribute.gdcNumber}</p>
+                                </div>
+                            </div>
+                            <button
+                                onClick={() => {
+                                    if (!processingCycle) {
+                                        setCycleToDistribute(null);
+                                        setDistributeModalError(null);
+                                    }
+                                }}
+                                disabled={!!processingCycle}
+                                className="p-2 text-gray-400 hover:text-gray-600 rounded-xl hover:bg-gray-100 transition-colors disabled:opacity-50"
+                            >
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
+
+                        {/* Modal Body */}
+                        <div className="p-6 space-y-5">
+                            <div>
+                                <h4 className="text-base font-bold text-gray-900 leading-snug">
+                                    Are you ready to distribute profits for this cycle?
+                                </h4>
+                                <p className="text-xs text-gray-500 mt-1.5 leading-relaxed">
+                                    Profits will be automatically credited to partner wallets for <span className="font-bold text-blue-600">EPS</span> accounts and compounded into the TPIA valuation for <span className="font-bold text-emerald-600">TPM</span> accounts.
+                                </p>
+                            </div>
+
+                            {/* Profit Details Card */}
+                            <div className="bg-gray-50/80 rounded-2xl p-4 border border-gray-100 grid grid-cols-2 gap-4 text-xs">
+                                <div>
+                                    <span className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">Total Profit Pool</span>
+                                    <p className="font-black text-emerald-600 text-sm mt-0.5">{formatCurrency(cycleToDistribute.totalProfitGenerated)}</p>
+                                </div>
+                                <div>
+                                    <span className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">Actual ROI Achieved</span>
+                                    <p className="font-black text-gray-900 text-sm mt-0.5">{(cycleToDistribute.actualProfitRate || 0).toFixed(2)}%</p>
+                                </div>
+                                <div>
+                                    <span className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">TPIAs Receiving Payout</span>
+                                    <p className="font-black text-gray-900 text-sm mt-0.5">{cycleToDistribute.tpiaCount} Blocks</p>
+                                </div>
+                                <div>
+                                    <span className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">Est. Return Per Block</span>
+                                    <p className="font-black text-gray-900 text-sm mt-0.5">
+                                        {formatCurrency(cycleToDistribute.tpiaCount > 0 ? cycleToDistribute.totalProfitGenerated / cycleToDistribute.tpiaCount : 0)}
+                                    </p>
+                                </div>
+                            </div>
+
+                            {distributeModalError && (
+                                <div className="p-3.5 bg-red-50 border border-red-100 rounded-2xl flex items-start gap-2.5 text-xs text-red-700 font-medium">
+                                    <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0 mt-0.5" />
+                                    <span>{distributeModalError}</span>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Modal Footer / Actions */}
+                        <div className="p-6 bg-gray-50/50 border-t border-gray-100 flex items-center justify-end gap-3">
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setCycleToDistribute(null);
+                                    setDistributeModalError(null);
+                                }}
+                                disabled={!!processingCycle}
+                                className="px-5 py-2.5 text-xs font-bold text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-xl transition-all disabled:opacity-50"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                type="button"
+                                onClick={executeDistributeProfits}
+                                disabled={!!processingCycle}
+                                className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black uppercase tracking-wider rounded-xl shadow-lg shadow-emerald-200 transition-all flex items-center gap-2 active:scale-95 disabled:opacity-50"
+                            >
+                                {processingCycle ? (
+                                    <>
+                                        <Loader2 className="w-4 h-4 animate-spin" />
+                                        <span>Distributing...</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <Coins className="w-3.5 h-3.5" />
+                                        <span>Confirm & Distribute</span>
+                                    </>
+                                )}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </AdminLayout>
     );
 }

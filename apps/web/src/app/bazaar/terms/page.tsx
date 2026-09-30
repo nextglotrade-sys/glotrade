@@ -35,7 +35,7 @@ export default function BazaarTermsPage() {
             Terms & Conditions
           </h1>
           <p className="text-slate-400 mt-4 text-base sm:text-lg">
-            GloTrade Bazaar Abuja 2026 — General Booking, Admission, Exhibitor & Non-Refundable Policies.
+            GloTrade International Trade Fair 2026 — General Booking, Admission, Exhibitor & Non-Refundable Policies.
           </p>
           <p className="text-xs text-slate-500 mt-2">
             Last Updated: August 2026 • Governed by the Laws of the Federal Republic of Nigeria
@@ -56,7 +56,7 @@ export default function BazaarTermsPage() {
                 All Payments Are Strictly Final & Non-Refundable
               </h2>
               <p className="text-sm sm:text-base text-slate-200 leading-relaxed">
-                By purchasing an event ticket (Standard, VIP, VVIP, Reserved Table), booking an exhibitor booth, or registering as an event sponsor for <strong>GloTrade Bazaar Abuja 2026</strong>, you explicitly acknowledge and agree that <strong>all transactions and payments are strictly non-refundable</strong> under any circumstances once payment is confirmed.
+                By purchasing an event ticket (Standard, VIP, VVIP, Reserved Table), booking an exhibitor booth, or registering as an event sponsor for <strong>GloTrade International Trade Fair 2026</strong>, you explicitly acknowledge and agree that <strong>all transactions and payments are strictly non-refundable</strong> under any circumstances once payment is confirmed.
               </p>
             </div>
           </div>
@@ -110,7 +110,7 @@ export default function BazaarTermsPage() {
             </div>
             <div className="space-y-3 text-sm sm:text-base text-slate-300 leading-relaxed">
               <p>
-                <strong>3.1 Verification at Gates:</strong> Entry to Harrow Park, Abuja is strictly granted upon scanning a valid GloTrade Bazaar electronic ticket pass or presenting an official physical badge.
+                <strong>3.1 Verification at Gates:</strong> Entry to the designated event exhibition venue in Abuja is strictly granted upon scanning a valid GloTrade electronic ticket pass or presenting an official physical badge.
               </p>
               <p>
                 <strong>3.2 Right of Admission Reserved:</strong> Event organizers and security personnel reserve the right to deny admission or escort any person from the premises who engages in disorderly conduct, harassment, unauthorized commercial hawking, or violation of venue regulations.
@@ -151,7 +151,7 @@ export default function BazaarTermsPage() {
                 <strong>5.1 Sponsor Assets:</strong> Sponsors must supply approved logos, promotional artwork, and video assets within the deadlines communicated by the sponsorship secretariat to ensure inclusion in digital, print, and stage backdrops.
               </p>
               <p>
-                <strong>5.2 Photography & Filming Consent:</strong> By attending or exhibiting at GloTrade Bazaar, you acknowledge that photography, audio, and video recording will take place across the venue. You grant GloTrade Platform Limited and its media partners the irrevocable right to use your likeness in event retrospectives, social media, and future promotional broadcasts.
+                <strong>5.2 Photography & Filming Consent:</strong> By attending or exhibiting at GloTrade International Trade Fair 2026, you acknowledge that photography, audio, and video recording will take place across the venue. You grant GloTrade Platform Limited and its media partners the irrevocable right to use your likeness in event retrospectives, social media, and future promotional broadcasts.
               </p>
             </div>
           </div>
@@ -207,7 +207,7 @@ export default function BazaarTermsPage() {
         {/* Bottom CTA */}
         <div className="mt-12 text-center space-y-4">
           <Link
-            href="/bazaar/tickets"
+            href="/trade-fair/tickets"
             className="inline-flex items-center gap-2 px-8 py-4 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-base shadow-lg transition-all"
           >
             <Ticket size={18} /> Proceed to Tickets & Registration
@@ -217,7 +217,7 @@ export default function BazaarTermsPage() {
               href="/bazaar"
               className="inline-flex items-center gap-1.5 text-xs text-slate-400 hover:text-white transition-colors"
             >
-              <ArrowLeft size={14} /> Back to GloTrade Bazaar Home
+              <ArrowLeft size={14} /> Back to Trade Fair Home
             </Link>
           </div>
         </div>

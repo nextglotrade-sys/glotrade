@@ -14,7 +14,8 @@ import {
   AlertTriangle,
   FileText,
   ExternalLink,
-  ShieldAlert
+  ShieldAlert,
+  Ticket,
 } from "lucide-react";
 import { apiPost, apiGet } from "@/utils/api";
 import { translate } from "@/utils/translate";
@@ -49,6 +50,38 @@ export default function BookingModal({ isOpen, onClose, pkg, config }: BookingMo
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [transferSubmitted, setTransferSubmitted] = useState<any>(null);
+  const [promoterCode, setPromoterCode] = useState("");
+  const [promoterStatus, setPromoterStatus] = useState<{
+    checking: boolean;
+    valid: boolean | null;
+    promoterName?: string;
+  }>({ checking: false, valid: null });
+
+  const validatePromoter = async (codeToTest: string) => {
+    const clean = codeToTest.trim().toUpperCase();
+    if (!clean) {
+      setPromoterStatus({ checking: false, valid: null });
+      return;
+    }
+    setPromoterStatus({ checking: true, valid: null });
+    try {
+      const res: any = await apiGet(`/api/v1/bazaar/promoters/validate/${encodeURIComponent(clean)}`);
+      if (res?.valid && res?.data) {
+        setPromoterStatus({
+          checking: false,
+          valid: true,
+          promoterName: res.data.promoterName,
+        });
+        if (typeof window !== "undefined") {
+          sessionStorage.setItem("bazaar_promoter_ref", clean);
+        }
+      } else {
+        setPromoterStatus({ checking: false, valid: false });
+      }
+    } catch {
+      setPromoterStatus({ checking: false, valid: false });
+    }
+  };
 
   useEffect(() => {
     if (config) {
@@ -60,7 +93,21 @@ export default function BookingModal({ isOpen, onClose, pkg, config }: BookingMo
         })
         .catch(() => {});
     }
-  }, [config, isOpen]);
+
+    if (isOpen && pkg?.type === "exhibitor") {
+      const savedRef =
+        typeof window !== "undefined"
+          ? sessionStorage.getItem("bazaar_promoter_ref") ||
+            new URLSearchParams(window.location.search).get("ref") ||
+            ""
+          : "";
+      if (savedRef && !promoterCode) {
+        const cleanRef = savedRef.trim().toUpperCase();
+        setPromoterCode(cleanRef);
+        validatePromoter(cleanRef);
+      }
+    }
+  }, [config, isOpen, pkg]);
 
   if (!isOpen || !pkg) return null;
 
@@ -113,6 +160,34 @@ export default function BookingModal({ isOpen, onClose, pkg, config }: BookingMo
     setTermsError(false);
 
     try {
+      if (pkg.price === 0) {
+        const res: any = await apiPost("/api/v1/bazaar/initialize-booking", {
+          type: pkg.type,
+          packageId: pkg.id,
+          packageName: pkg.name,
+          amount: 0,
+          customerName: name,
+          customerEmail: email,
+          customerPhone: phone,
+          businessName,
+          notes,
+          returnUrl: `${window.location.origin}/bazaar/callback`,
+        });
+
+        const ref = res?.data?.booking?.reference || res?.data?.reference;
+        if (ref) {
+          window.location.href = `/bazaar/callback?reference=${encodeURIComponent(ref)}`;
+          return;
+        } else {
+          setError(res?.message || "Failed to generate free admission pass. Please try again.");
+          setLoading(false);
+          return;
+        }
+      }
+
+      const cleanPromoterCode =
+        pkg.type === "exhibitor" && promoterCode.trim() ? promoterCode.trim().toUpperCase() : undefined;
+
       if (paymentMode === "paystack") {
         const res: any = await apiPost("/api/v1/bazaar/initialize-booking", {
           type: pkg.type,
@@ -124,6 +199,7 @@ export default function BookingModal({ isOpen, onClose, pkg, config }: BookingMo
           customerPhone: phone,
           businessName,
           notes,
+          promoterCode: cleanPromoterCode,
           returnUrl: `${window.location.origin}/bazaar/callback`,
         });
 
@@ -150,6 +226,7 @@ export default function BookingModal({ isOpen, onClose, pkg, config }: BookingMo
           notes: transferNotes,
           paymentMethod: "bank_transfer",
           isManualBankTransfer: true,
+          promoterCode: cleanPromoterCode,
         });
 
         const bookingRef = res?.data?.booking?.reference || res?.data?.reference || "GTB-REF";
@@ -157,12 +234,13 @@ export default function BookingModal({ isOpen, onClose, pkg, config }: BookingMo
 
         // Build WhatsApp pre-filled text
         const notesLine = notes?.trim() ? `\n- Special Requests / Notes: ${notes.trim()}` : "";
-        const waMsg = `Hi GloTrade Bazaar Team, I have made a bank transfer of NGN ${pkg.price.toLocaleString("en-NG")} for my booking:
+        const promoterLine = cleanPromoterCode ? `\n- Promoter Referral Code: ${cleanPromoterCode}` : "";
+        const waMsg = `Hi GloTrade Trade Fair Team, I have made a bank transfer of NGN ${pkg.price.toLocaleString("en-NG")} for my booking:
 - Package: ${pkg.name}
 - Name: ${name}
 - Email: ${email}
 - Phone: ${phone}
-${businessName ? `- Business: ${businessName}\n` : ""}- Ref: ${bookingRef}${ticketCode ? `\n- Ticket Code: ${ticketCode}` : ""}${notesLine}
+${businessName ? `- Business: ${businessName}\n` : ""}- Ref: ${bookingRef}${ticketCode ? `\n- Ticket Code: ${ticketCode}` : ""}${promoterLine}${notesLine}
 
 Please verify my payment and send my ticket confirmation email.`;
 
@@ -265,89 +343,113 @@ Please verify my payment and send my ticket confirmation email.`;
           </div>
         ) : (
           <>
-            {/* Payment Method Selector Tabs */}
-            <div className="grid grid-cols-2 gap-2 mb-4 p-1 bg-slate-950/80 border border-slate-800 rounded-xl">
-              <button
-                type="button"
-                onClick={() => setPaymentMode("bank_transfer")}
-                className={`py-2.5 px-3 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-2 ${paymentMode === "bank_transfer"
-                  ? "bg-amber-500 text-slate-950 shadow-md"
-                  : "text-slate-400 hover:text-white"
-                  }`}
-              >
-                <Building2 size={15} /> Bank Transfer / WhatsApp
-              </button>
-              <button
-                type="button"
-                disabled
-                className="py-2.5 px-3 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 opacity-60 cursor-not-allowed text-slate-400 border border-slate-800/40 select-none"
-                title="Instant Card / Paystack is coming soon"
-              >
-                <CreditCard size={15} />
-                <span>Instant Card</span>
-                <span className="text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">
-                  Coming Soon
-                </span>
-              </button>
-            </div>
-
-            {/* Package summary card */}
-            <div className="bg-slate-950/60 border border-amber-500/20 rounded-xl p-4 mb-4 flex items-center justify-between">
-              <div>
-                <p className="text-xs text-slate-400">{translate("bazaar.totalPayable") || "Total Payable Amount"}</p>
-                <p className="text-2xl font-black text-amber-400">
-                  ₦{pkg.price.toLocaleString("en-NG")}
-                </p>
-              </div>
-              <div className="text-right">
-                <span className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/30">
-                  {paymentMode === "paystack" ? (
-                    <>
-                      <ShieldCheck size={13} /> {translate("bazaar.securedPaystack") || "Secured by Paystack"}
-                    </>
-                  ) : (
-                    <>
-                      <Building2 size={13} /> Direct Bank Transfer
-                    </>
-                  )}
-                </span>
-              </div>
-            </div>
-
-            {paymentMode === "bank_transfer" && (
-              /* Bank Transfer Details Box */
-              <div className="bg-slate-950 border border-amber-500/40 rounded-xl p-4 mb-4 space-y-2 text-xs">
-                <div className="flex items-center justify-between border-b border-slate-800 pb-2 mb-2">
-                  <span className="font-bold text-amber-400 flex items-center gap-1.5">
-                    <Building2 size={14} /> Official GloTrade Bank Account
+            {pkg.price === 0 ? (
+              /* Free Admission Summary Box */
+              <div className="bg-gradient-to-r from-emerald-950/70 via-slate-900 to-emerald-950/70 border border-emerald-500/40 rounded-2xl p-5 mb-5 flex items-center justify-between shadow-lg shadow-emerald-500/10">
+                <div>
+                  <span className="text-[10px] uppercase font-bold text-emerald-400 tracking-wider block">
+                    Admission Tariff
                   </span>
-                  <span className="text-[10px] text-slate-400">Nigeria</span>
+                  <p className="text-2xl font-black text-emerald-400 mt-0.5">
+                    100% FREE ENTRY
+                  </p>
+                  <p className="text-xs text-slate-300 mt-1">
+                    Free Gate Pass · Dec 1–5, 2026 at NACCAS Asokoro, Abuja
+                  </p>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-400">Bank Name:</span>
-                  <span className="font-bold text-white">{bankName}</span>
+                <div className="text-right">
+                  <span className="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
+                    <CheckCircle2 size={14} /> Instant QR Pass
+                  </span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-400">Account Name:</span>
-                  <span className="font-bold text-white">{bankAccountName}</span>
-                </div>
-                <div className="flex justify-between items-center bg-slate-900 p-2 rounded-lg border border-slate-800">
-                  <div>
-                    <span className="text-[10px] text-slate-400 block">Account Number:</span>
-                    <span className="font-mono text-base font-black text-amber-400">{bankAccountNumber}</span>
-                  </div>
+              </div>
+            ) : (
+              <>
+                {/* Payment Method Selector Tabs */}
+                <div className="grid grid-cols-2 gap-2 mb-4 p-1 bg-slate-950/80 border border-slate-800 rounded-xl">
                   <button
                     type="button"
-                    onClick={handleCopyAccount}
-                    className="px-2.5 py-1 rounded bg-amber-500/20 hover:bg-amber-500/30 text-amber-400 font-bold text-[11px] flex items-center gap-1"
+                    onClick={() => setPaymentMode("bank_transfer")}
+                    className={`py-2.5 px-3 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-2 ${paymentMode === "bank_transfer"
+                      ? "bg-amber-500 text-slate-950 shadow-md"
+                      : "text-slate-400 hover:text-white"
+                      }`}
                   >
-                    {copied ? <Check size={12} /> : <Copy size={12} />} {copied ? "Copied" : "Copy"}
+                    <Building2 size={15} /> Bank Transfer / WhatsApp
+                  </button>
+                  <button
+                    type="button"
+                    disabled
+                    className="py-2.5 px-3 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 opacity-60 cursor-not-allowed text-slate-400 border border-slate-800/40 select-none"
+                    title="Instant Card / Paystack is coming soon"
+                  >
+                    <CreditCard size={15} />
+                    <span>Instant Card</span>
+                    <span className="text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                      Coming Soon
+                    </span>
                   </button>
                 </div>
-                <p className="text-[11px] text-slate-400 italic pt-1">
-                  Make your transfer for ₦{pkg.price.toLocaleString("en-NG")}, fill in your info below and submit to notify our admin team via WhatsApp for instant ticket issuance.
-                </p>
-              </div>
+
+                {/* Package summary card */}
+                <div className="bg-slate-950/60 border border-amber-500/20 rounded-xl p-4 mb-4 flex items-center justify-between">
+                  <div>
+                    <p className="text-xs text-slate-400">{translate("bazaar.totalPayable") || "Total Payable Amount"}</p>
+                    <p className="text-2xl font-black text-amber-400">
+                      ₦{pkg.price.toLocaleString("en-NG")}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <span className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/30">
+                      {paymentMode === "paystack" ? (
+                        <>
+                          <ShieldCheck size={13} /> {translate("bazaar.securedPaystack") || "Secured by Paystack"}
+                        </>
+                      ) : (
+                        <>
+                          <Building2 size={13} /> Direct Bank Transfer
+                        </>
+                      )}
+                    </span>
+                  </div>
+                </div>
+
+                {paymentMode === "bank_transfer" && (
+                  /* Bank Transfer Details Box */
+                  <div className="bg-slate-950 border border-amber-500/40 rounded-xl p-4 mb-4 space-y-2 text-xs">
+                    <div className="flex items-center justify-between border-b border-slate-800 pb-2 mb-2">
+                      <span className="font-bold text-amber-400 flex items-center gap-1.5">
+                        <Building2 size={14} /> Official GloTrade Bank Account
+                      </span>
+                      <span className="text-[10px] text-slate-400">Nigeria</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-400">Bank Name:</span>
+                      <span className="font-bold text-white">{bankName}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-400">Account Name:</span>
+                      <span className="font-bold text-white">{bankAccountName}</span>
+                    </div>
+                    <div className="flex justify-between items-center bg-slate-900 p-2 rounded-lg border border-slate-800">
+                      <div>
+                        <span className="text-[10px] text-slate-400 block">Account Number:</span>
+                        <span className="font-mono text-base font-black text-amber-400">{bankAccountNumber}</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={handleCopyAccount}
+                        className="px-2.5 py-1 rounded bg-amber-500/20 hover:bg-amber-500/30 text-amber-400 font-bold text-[11px] flex items-center gap-1"
+                      >
+                        {copied ? <Check size={12} /> : <Copy size={12} />} {copied ? "Copied" : "Copy"}
+                      </button>
+                    </div>
+                    <p className="text-[11px] text-slate-400 italic pt-1">
+                      Make your transfer for ₦{pkg.price.toLocaleString("en-NG")}, fill in your info below and submit to notify our admin team via WhatsApp for instant ticket issuance.
+                    </p>
+                  </div>
+                )}
+              </>
             )}
 
             {error && (
@@ -417,6 +519,53 @@ Please verify my payment and send my ticket confirmation email.`;
                 </div>
               )}
 
+              {pkg.type === "exhibitor" && (
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block text-xs font-medium text-slate-300">
+                      Promoter / Referral Code <span className="text-slate-500 font-normal">(Optional)</span>
+                    </label>
+                    {promoterStatus.valid === true && (
+                      <span className="text-[11px] font-semibold text-emerald-400 flex items-center gap-1">
+                        <CheckCircle2 size={12} /> Partner: {promoterStatus.promoterName}
+                      </span>
+                    )}
+                    {promoterStatus.valid === false && promoterCode.trim().length > 0 && (
+                      <span className="text-[11px] font-semibold text-amber-400">
+                        Invalid promoter code
+                      </span>
+                    )}
+                  </div>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={promoterCode}
+                      onChange={(e) => {
+                        const val = e.target.value.toUpperCase();
+                        setPromoterCode(val);
+                        validatePromoter(val);
+                      }}
+                      placeholder="e.g. TF-PROMO-A92B"
+                      className={`w-full bg-slate-950 border ${
+                        promoterStatus.valid === true
+                          ? "border-emerald-500/80 ring-1 ring-emerald-500/30"
+                          : promoterStatus.valid === false && promoterCode.trim().length > 0
+                          ? "border-amber-500/60"
+                          : "border-slate-800 focus:border-amber-500"
+                      } rounded-xl px-4 py-2.5 text-sm font-mono text-white focus:outline-none uppercase`}
+                    />
+                    {promoterStatus.checking && (
+                      <div className="absolute right-3 top-3">
+                        <Loader2 size={16} className="animate-spin text-amber-400" />
+                      </div>
+                    )}
+                  </div>
+                  <p className="text-[10px] text-slate-400 mt-1">
+                    If you were referred to book a stall by an official trade fair promoter or brand ambassador, enter their code.
+                  </p>
+                </div>
+              )}
+
               <div>
                 <label className="block text-xs font-medium text-slate-300 mb-1">
                   {translate("bazaar.specialRequestsNotes") || "Special Requests / Notes"}
@@ -464,10 +613,16 @@ Please verify my payment and send my ticket confirmation email.`;
                         onClick={() => setShowTermsModal(true)}
                         className="text-amber-400 font-bold underline hover:text-amber-300 inline-flex items-center gap-0.5"
                       >
-                        Terms & Conditions
+                        Terms &amp; Event Guidelines
                       </button>{" "}
-                      and acknowledge that all ticket, booth, and sponsorship payments are{" "}
-                      <strong className="text-amber-400 font-bold underline">strictly non-refundable</strong> after payment.
+                      {pkg.price === 0 ? (
+                        <span>and agree to abide by the event venue safety and admission protocols.</span>
+                      ) : (
+                        <span>
+                          and acknowledge that all ticket, booth, and sponsorship payments are{" "}
+                          <strong className="text-amber-400 font-bold underline">strictly non-refundable</strong> after payment.
+                        </span>
+                      )}
                     </span>
                   </label>
                 </div>
@@ -475,7 +630,7 @@ Please verify my payment and send my ticket confirmation email.`;
                 {termsError && (
                   <p className="text-[11px] text-red-400 font-semibold mt-2 pl-7 flex items-center gap-1">
                     <AlertTriangle size={12} className="shrink-0" />
-                    Please check the box above to accept the terms before paying.
+                    Please check the box above to accept the event terms before proceeding.
                   </p>
                 )}
               </div>
@@ -484,11 +639,20 @@ Please verify my payment and send my ticket confirmation email.`;
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full py-3.5 px-6 rounded-xl bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-400 hover:to-amber-300 text-slate-950 font-bold text-base shadow-lg shadow-amber-500/20 flex items-center justify-center gap-2 transition-all hover:scale-[1.02] disabled:opacity-50"
+                  className={`w-full py-4 px-6 rounded-xl font-bold text-base shadow-lg flex items-center justify-center gap-2 transition-all hover:scale-[1.02] disabled:opacity-50 ${
+                    pkg.price === 0
+                      ? "bg-gradient-to-r from-emerald-500 via-emerald-400 to-amber-400 hover:from-emerald-400 hover:to-amber-300 text-slate-950 shadow-emerald-500/20"
+                      : "bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-400 hover:to-amber-300 text-slate-950 shadow-amber-500/20"
+                  }`}
                 >
                   {loading ? (
                     <>
-                      <Loader2 className="animate-spin" size={18} /> Processing...
+                      <Loader2 className="animate-spin" size={18} />
+                      {pkg.price === 0 ? "Generating Free Pass..." : "Processing..."}
+                    </>
+                  ) : pkg.price === 0 ? (
+                    <>
+                      <Ticket size={18} /> Claim Free Entry Pass
                     </>
                   ) : paymentMode === "paystack" ? (
                     <>
@@ -496,7 +660,7 @@ Please verify my payment and send my ticket confirmation email.`;
                     </>
                   ) : (
                     <>
-                      <MessageSquare size={18} /> Submit & Verify Payment on WhatsApp
+                      <MessageSquare size={18} /> Submit &amp; Verify Payment on WhatsApp
                     </>
                   )}
                 </button>
@@ -504,7 +668,9 @@ Please verify my payment and send my ticket confirmation email.`;
             </form>
 
             <p className="text-[11px] text-slate-500 text-center mt-3">
-              {paymentMode === "paystack"
+              {pkg.price === 0
+                ? "Your free digital ticket pass with unique QR Code will be issued immediately upon registration."
+                : paymentMode === "paystack"
                 ? translate("bazaar.paystackRedirectDisclaimer") || "By clicking pay, you will be securely redirected to Paystack to complete your payment."
                 : "Your registration will be submitted to the admin team and verified via WhatsApp for email ticket issuance."}
             </p>
@@ -535,14 +701,14 @@ Please verify my payment and send my ticket confirmation email.`;
                   ⚠️ Non-Refundable Policy
                 </span>
                 <p>
-                  All payments made for GloTrade Bazaar tickets, exhibitor stalls, and sponsorship packages are <strong>final and strictly non-refundable</strong> once confirmed. No refunds or partial refunds will be given under any circumstance.
+                  All payments made for GloTrade International Trade Fair passes, exhibitor booths, and sponsorship packages are <strong>final and strictly non-refundable</strong> once confirmed. No refunds or partial refunds will be given under any circumstance.
                 </p>
               </div>
 
               <div className="space-y-3 text-xs text-slate-300 leading-relaxed">
                 <div>
                   <h4 className="font-bold text-white mb-1">1. Ticket & Admittance Rules</h4>
-                  <p>Each ticket code is valid for single admission (or 4 persons for Table of 4). Attendees must present the valid digital QR code or email pass at the Harrow Park gate.</p>
+                  <p>Each pass code is valid for the designated admission tier (or delegation table). Attendees must present the valid digital QR code or email pass at the event gate.</p>
                 </div>
                 <div>
                   <h4 className="font-bold text-white mb-1">2. Ticket Transferability</h4>

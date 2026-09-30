@@ -196,12 +196,20 @@ export class TradeCycleService {
         // Get all TPIAs in this cycle
         const tpias = await TPIA.find({ _id: { $in: cycle.tpiaIds } });
 
-        // Calculate profit per TPIA (equal distribution)
-        const profitPerTPIA = cycle.totalProfitGenerated / tpias.length;
+        // Calculate total cycle capital for proportional distribution
+        // Enables true compounding for TPM accounts whose currentValue increases over cycles
+        const totalCycleCapital = cycle.totalCapital > 0
+            ? cycle.totalCapital
+            : tpias.reduce((sum, t) => sum + (t.currentValue || t.purchasePrice || 0), 0);
 
         const distributionDetails = [];
 
         for (const tpia of tpias) {
+            const tpiaCapital = tpia.currentValue || tpia.purchasePrice || 1000000;
+            const profitPerTPIA = totalCycleCapital > 0
+                ? (tpiaCapital / totalCycleCapital) * cycle.totalProfitGenerated
+                : cycle.totalProfitGenerated / tpias.length;
+
             // Update TPIA based on profit mode
             if (tpia.profitMode === "TPM") {
                 // Compounding mode - add profit to TPIA value
@@ -217,6 +225,7 @@ export class TradeCycleService {
                     await wallet.save();
 
                     // Create wallet transaction
+                    const profitRef = `GDIP-PROFIT-${cycle.cycleId}-${tpia.tpiaId}-${Date.now()}`;
                     await WalletTransaction.create({
                         walletId: wallet._id,
                         userId: tpia.partnerId,
@@ -227,12 +236,13 @@ export class TradeCycleService {
                         balanceBefore,
                         balanceAfter: wallet.balance,
                         status: "completed",
-                        reference: `GDIP-PROFIT-${cycle.cycleId}-${tpia.tpiaId}`,
+                        reference: profitRef,
                         description: `Profit from ${tpia.tpiaId} - Cycle ${cycle.cycleNumber} (${cycle.actualProfitRate.toFixed(2)}% ROI)`,
                         metadata: {
                             tpiaId: tpia._id.toString(),
                             cycleId: cycle._id.toString(),
-                            profitRate: cycle.actualProfitRate
+                            profitRate: cycle.actualProfitRate,
+                            idempotencyKey: profitRef
                         },
                         processedAt: new Date()
                     });

@@ -484,6 +484,31 @@ export class GDIPController {
     }
 
     /**
+     * ADMIN: Start scheduled trade cycle
+     * POST /api/gdip/admin/cycle/:cycleId/start
+     */
+    static async startTradeCycle(req: Request, res: Response) {
+        try {
+            const { cycleId } = req.params;
+
+            const cycle = await TradeCycleService.startCycle(
+                cycleId as unknown as Schema.Types.ObjectId
+            );
+
+            res.json({
+                success: true,
+                message: "Trade cycle started successfully",
+                data: cycle
+            });
+        } catch (error: any) {
+            console.error("Error starting trade cycle:", error);
+            res.status(500).json({
+                error: error.message || "Failed to start trade cycle"
+            });
+        }
+    }
+
+    /**
      * ADMIN: Complete trade cycle
      * POST /api/gdip/admin/cycle/:cycleId/complete
      */

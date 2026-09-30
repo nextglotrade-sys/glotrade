@@ -198,6 +198,8 @@ router.post("/webhook/paystack", bodyParser.raw({ type: "*/*" }), async (req: an
           emailService.sendBazaarConfirmationEmail(booking as any).catch((err) => {
             console.error("Failed to send bazaar webhook confirmation email:", err);
           });
+          const { BazaarController } = await import("../controllers/bazaar.controller");
+          await BazaarController.creditPromoterIfApplicable(booking);
         } else if (evt === "charge.failed") {
           booking.paymentStatus = "failed";
         }

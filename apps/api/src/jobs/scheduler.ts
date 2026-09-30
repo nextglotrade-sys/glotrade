@@ -1,5 +1,6 @@
 import cron from 'node-cron';
 import DistributorService from '../services/DistributorService';
+import initializeGDIPCronJobs from './gdipCronJobs';
 
 /**
  * Initialize all scheduled jobs
@@ -17,6 +18,9 @@ export const initScheduledJobs = () => {
             console.error('Error running Distributor Rewards job:', error);
         }
     });
+
+    // Initialize GDIP trade cycle automated jobs (daily checks at 2:00 AM, 3:00 AM, 4:00 AM)
+    initializeGDIPCronJobs();
 
     console.log('Scheduled jobs initialized.');
 };

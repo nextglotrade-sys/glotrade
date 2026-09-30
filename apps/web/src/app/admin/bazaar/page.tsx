@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import AdminLayout from "@/components/admin/AdminLayout";
 import {
   Ticket,
@@ -53,10 +54,14 @@ export default function AdminBazaarPage() {
     exhibitorApplicationsActive: true,
     sponsorshipActive: true,
     inactiveMessage: "",
+    eventTitle: "GloTrade International Trade Fair 2026",
+    eventDateLabel: "1st – 5th December 2026",
+    eventVenue: "Nigerian Army Conference Centre & Suites (NACCAS), Km 10 Expressway, Asokoro, Abuja, FCT – Nigeria",
     bankName: "Wema Bank",
     bankAccountName: "GloTrade Platform Limited",
     bankAccountNumber: "0127131496",
     whatsappNumber: "2347044600924",
+    email: "tradefair@glotrade.online",
   });
   const [configLoading, setConfigLoading] = useState(true);
   const [configSaving, setConfigSaving] = useState(false);
@@ -71,9 +76,9 @@ export default function AdminBazaarPage() {
   // Manual Booking Modal State
   const [showManualModal, setShowManualModal] = useState(false);
   const [manualType, setManualType] = useState<"ticket" | "exhibitor" | "sponsorship">("ticket");
-  const [manualPkgId, setManualPkgId] = useState("vvip");
-  const [manualPkgName, setManualPkgName] = useState("VVIP Pass");
-  const [manualAmount, setManualAmount] = useState<number>(25000);
+  const [manualPkgId, setManualPkgId] = useState("standard");
+  const [manualPkgName, setManualPkgName] = useState("Free Public Day Pass");
+  const [manualAmount, setManualAmount] = useState<number>(0);
   const [manualName, setManualName] = useState("");
   const [manualEmail, setManualEmail] = useState("");
   const [manualPhone, setManualPhone] = useState("");
@@ -182,29 +187,45 @@ export default function AdminBazaarPage() {
   // Handle Preset Package Changes in Manual Booking Modal
   const handlePackageSelect = (pkgId: string) => {
     setManualPkgId(pkgId);
-    if (pkgId === "standard") {
-      setManualPkgName("Standard Ticket");
-      setManualAmount(7000);
+    if (pkgId === "standard" || pkgId === "free-general") {
+      setManualPkgName("Free Public Day Pass");
+      setManualAmount(0);
       setManualType("ticket");
-    } else if (pkgId === "vip") {
-      setManualPkgName("VIP Pass");
-      setManualAmount(15000);
+    } else if (pkgId === "vip" || pkgId === "free-all-access") {
+      setManualPkgName("Free 5-Day Visitor Pass");
+      setManualAmount(0);
       setManualType("ticket");
-    } else if (pkgId === "vvip") {
-      setManualPkgName("VVIP Pass");
-      setManualAmount(25000);
+    } else if (pkgId === "vvip" || pkgId === "free-trade-buyer") {
+      setManualPkgName("Trade Buyer & B2B Pass");
+      setManualAmount(0);
       setManualType("ticket");
-    } else if (pkgId === "table") {
-      setManualPkgName("Table of 4");
-      setManualAmount(250000);
+    } else if (pkgId === "table" || pkgId === "free-vip") {
+      setManualPkgName("VIP Executive Accreditation");
+      setManualAmount(0);
       setManualType("ticket");
-    } else if (pkgId === "stall-half") {
-      setManualPkgName("Half Space Stall");
-      setManualAmount(25000);
+    } else if (pkgId === "tier-micro") {
+      setManualPkgName("Micro Enterprise Booth");
+      setManualAmount(150000);
       setManualType("exhibitor");
-    } else if (pkgId === "stall-standard") {
-      setManualPkgName("Standard Stall");
-      setManualAmount(50000);
+    } else if (pkgId === "tier-small") {
+      setManualPkgName("Small Scale Enterprise Booth");
+      setManualAmount(250000);
+      setManualType("exhibitor");
+    } else if (pkgId === "tier-bronze") {
+      setManualPkgName("Bronze Membership Stall");
+      setManualAmount(375000);
+      setManualType("exhibitor");
+    } else if (pkgId === "tier-silver") {
+      setManualPkgName("Silver Membership Stall");
+      setManualAmount(500000);
+      setManualType("exhibitor");
+    } else if (pkgId === "tier-gold") {
+      setManualPkgName("Gold Membership Stall");
+      setManualAmount(750000);
+      setManualType("exhibitor");
+    } else if (pkgId === "tier-platinum") {
+      setManualPkgName("Platinum Membership Stall");
+      setManualAmount(1000000);
       setManualType("exhibitor");
     } else if (pkgId === "sponsor-gold") {
       setManualPkgName("Gold Sponsorship");
@@ -242,11 +263,13 @@ export default function AdminBazaarPage() {
     }
   };
 
+  const eventId = "bazaar_abuja_2026";
+
   // Fetch Stats & Config
   const loadStatsAndConfig = async () => {
     try {
       const [statsRes, configRes]: any[] = await Promise.all([
-        apiGet("/api/v1/bazaar/admin/stats"),
+        apiGet("/api/v1/bazaar/admin/stats", { query: { eventId } }),
         apiGet("/api/v1/bazaar/config"),
       ]);
       if (statsRes?.data) setStats(statsRes.data);
@@ -271,6 +294,7 @@ export default function AdminBazaarPage() {
     setBookingsLoading(true);
     try {
       const query: any = {
+        eventId,
         type: activeTab,
         page,
         limit: 15,
@@ -319,6 +343,7 @@ export default function AdminBazaarPage() {
     try {
       const res: any = await apiPost("/api/v1/bazaar/admin/check-in", {
         code: codeToVerify.trim(),
+        eventId,
       });
       setCheckInResult({
         success: res?.status === "success",
@@ -354,6 +379,7 @@ export default function AdminBazaarPage() {
 
     try {
       const res: any = await apiPost("/api/v1/bazaar/admin/bookings/manual", {
+        eventId,
         type: manualType,
         packageId: manualPkgId,
         packageName: manualPkgName,
@@ -444,14 +470,28 @@ export default function AdminBazaarPage() {
           </div>
         )}
 
+        {/* Archive Notice Banner */}
+        <div className="p-4 bg-amber-500/10 border border-amber-500/30 text-amber-900 rounded-xl text-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <span className="font-bold uppercase tracking-wider text-xs px-2.5 py-1 bg-amber-200 text-amber-900 rounded-md">Historical Archive</span>
+            <span>You are viewing archived records for <strong>GloTrade Abuja Bazaar (Past Event)</strong>.</span>
+          </div>
+          <Link
+            href="/admin/trade-fair"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg shadow-sm w-fit transition-colors"
+          >
+            Switch to Active Trade Fair 2026 Management &rarr;
+          </Link>
+        </div>
+
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-200 pb-4">
           <div>
             <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-              <Ticket className="text-blue-600" size={28} /> GloTrade Bazaar Management
+              <Ticket className="text-amber-600" size={28} /> GloTrade Abuja Bazaar (Historical Archive)
             </h1>
             <p className="text-sm text-gray-500">
-              Manage event portal seasonal visibility, manual bank transfers, ticket sales, stall bookings, and gate check-ins.
+              Archived historical data, ticket logs, attendee checks, and transaction records for the completed Abuja Bazaar.
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-3">
@@ -552,6 +592,45 @@ export default function AdminBazaarPage() {
                 />
               </label>
               <p className="text-[11px] text-gray-500 mt-1">Enable sponsorship applications.</p>
+            </div>
+          </div>
+
+          {/* Event Identity & Details */}
+          <div className="border-t border-gray-100 pt-4 mt-4 space-y-4">
+            <h3 className="text-xs font-bold text-gray-800 uppercase tracking-wider flex items-center gap-1.5">
+              <Calendar size={16} className="text-blue-600" /> Event Identity & Schedule Information
+            </h3>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">Event Title</label>
+                <input
+                  type="text"
+                  value={config.eventTitle || ""}
+                  onChange={(e) => setConfig({ ...config, eventTitle: e.target.value })}
+                  placeholder="e.g. GloTrade International Trade Fair 2026"
+                  className="w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-xs text-gray-900 focus:ring-2 focus:ring-blue-500 font-medium"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">Event Dates / Duration</label>
+                <input
+                  type="text"
+                  value={config.eventDateLabel || ""}
+                  onChange={(e) => setConfig({ ...config, eventDateLabel: e.target.value })}
+                  placeholder="e.g. 1st – 5th December 2026"
+                  className="w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-xs text-gray-900 focus:ring-2 focus:ring-blue-500 font-medium"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">Event Venue / Location</label>
+                <input
+                  type="text"
+                  value={config.eventVenue || ""}
+                  onChange={(e) => setConfig({ ...config, eventVenue: e.target.value })}
+                  placeholder="e.g. Venue to be announced (TBA), Abuja"
+                  className="w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-xs text-gray-900 focus:ring-2 focus:ring-blue-500 font-medium"
+                />
+              </div>
             </div>
           </div>
 
@@ -679,7 +758,7 @@ export default function AdminBazaarPage() {
                 type="text"
                 value={config.inactiveMessage || ""}
                 onChange={(e) => setConfig({ ...config, inactiveMessage: e.target.value })}
-                placeholder="e.g. GloTrade Bazaar Abuja 2026 portal is currently offline..."
+                placeholder="e.g. GloTrade International Trade Fair 2026 portal is currently offline..."
                 className="w-full bg-white border border-gray-300 rounded-lg px-4 py-2 text-sm text-gray-900 focus:ring-2 focus:ring-blue-500 focus:outline-none"
               />
             </div>
@@ -1203,7 +1282,7 @@ export default function AdminBazaarPage() {
                     <span className="font-bold text-gray-900">{selectedBooking.customerPhone}</span>
                     <a
                       href={`https://wa.me/${selectedBooking.customerPhone.replace(/[^0-9]/g, "")}?text=${encodeURIComponent(
-                        `Hi ${selectedBooking.customerName}, regarding your GloTrade Bazaar ${selectedBooking.packageName} booking (${selectedBooking.ticketCode})...`
+                        `Hi ${selectedBooking.customerName}, regarding your GloTrade International Trade Fair ${selectedBooking.packageName} booking (${selectedBooking.ticketCode})...`
                       )}`}
                       target="_blank"
                       rel="noopener noreferrer"
@@ -1504,14 +1583,24 @@ export default function AdminBazaarPage() {
                   onChange={(e) => handlePackageSelect(e.target.value)}
                   className="w-full bg-gray-50 border border-gray-300 rounded-xl px-3 py-2 text-sm text-gray-900 focus:ring-2 focus:ring-blue-500"
                 >
-                  <option value="standard">🎟️ Standard Ticket (₦7,000)</option>
-                  <option value="vip">⭐ VIP Pass (₦15,000)</option>
-                  <option value="vvip">👑 VVIP Pass (₦25,000)</option>
-                  <option value="table">🥂 Table of 4 (₦250,000)</option>
-                  <option value="stall-half">🎪 Half Space Exhibitor Stall (₦25,000)</option>
-                  <option value="stall-standard">🎪 Standard Exhibitor Stall (₦50,000)</option>
-                  <option value="sponsor-gold">🏆 Gold Sponsorship (₦500,000)</option>
-                  <option value="sponsor-headline">👑 Headline Sponsorship (₦1,500,000)</option>
+                  <optgroup label="Free Admission Passes (₦0)">
+                    <option value="standard">🎟️ Free Public Day Pass (₦0 - Free Entry)</option>
+                    <option value="vip">🎟️ Free 5-Day Visitor Pass (₦0 - Most Popular)</option>
+                    <option value="vvip">💼 Trade Buyer & B2B Pass (₦0 - Commercial)</option>
+                    <option value="table">👑 VIP Executive Accreditation (₦0 - VIP)</option>
+                  </optgroup>
+                  <optgroup label="Official Exhibitor Booths (Dec 1–5)">
+                    <option value="tier-micro">🎪 Micro Enterprise (₦150,000 / ₦30,000 daily)</option>
+                    <option value="tier-small">🎪 Small Scale Enterprise (₦250,000 / ₦50,000 daily)</option>
+                    <option value="tier-bronze">🥉 Bronze Membership (₦375,000 / ₦75,000 daily)</option>
+                    <option value="tier-silver">🥈 Silver Membership (₦500,000 / ₦100,000 daily)</option>
+                    <option value="tier-gold">🥇 Gold Membership (₦750,000 / ₦150,000 daily)</option>
+                    <option value="tier-platinum">💎 Platinum Membership (₦1,000,000 / ₦200,000 daily)</option>
+                  </optgroup>
+                  <optgroup label="Sponsorship Packages">
+                    <option value="sponsor-gold">🏆 Gold Sponsorship (₦500,000)</option>
+                    <option value="sponsor-headline">👑 Headline Sponsorship (₦1,500,000)</option>
+                  </optgroup>
                 </select>
               </div>
 

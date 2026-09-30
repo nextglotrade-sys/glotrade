@@ -75,7 +75,7 @@ Ensure your `apps/api/package.json` has a start script:
    ```
 
 6. Click **"Create Web Service"**
-7. Copy your backend URL: `https://afritrade-api.onrender.com`
+7. Copy your backend URL: `https://glotradecom.onrender.com`
 
 ---
 
@@ -93,7 +93,7 @@ Ensure your `apps/api/package.json` has a start script:
 
 5. Add Environment Variable:
    ```
-   NEXT_PUBLIC_API_URL=https://afritrade-api.onrender.com
+   NEXT_PUBLIC_API_URL=https://glotradecom.onrender.com
    ```
 
 6. Click **"Deploy"**

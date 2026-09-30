@@ -108,6 +108,13 @@ router.post("/admin/tpia/:tpiaId/void", requireAuth, requireInsuredPartnersManag
 router.post("/admin/cycle/create", requireAuth, requireInsuredPartnersManager, GDIPController.createTradeCycle);
 
 /**
+ * @route   POST /api/gdip/admin/cycle/:cycleId/start
+ * @desc    Start a scheduled trade cycle
+ * @access  Private (Admin or Insured Partners Manager)
+ */
+router.post("/admin/cycle/:cycleId/start", requireAuth, requireInsuredPartnersManager, GDIPController.startTradeCycle);
+
+/**
  * @route   POST /api/gdip/admin/cycle/:cycleId/complete
  * @desc    Complete a trade cycle with profit/loss results
  * @access  Private (Admin only)

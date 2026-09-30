@@ -126,10 +126,10 @@ function VerifyContent() {
         )}
 
         <h1 className="text-2xl sm:text-3xl font-black text-white mb-1">
-          GloTrade Bazaar Entrance Verification
+          GloTrade International Trade Fair Entrance Verification
         </h1>
         <p className="text-xs text-slate-400 mb-6">
-          Saturday, 12 September 2026 • Harrow Park, Abuja
+          1st – 5th December 2026 • Abuja, Nigeria
         </p>
 
         {checkInMsg && (

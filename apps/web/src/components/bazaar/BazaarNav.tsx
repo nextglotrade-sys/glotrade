@@ -23,8 +23,8 @@ const languageFlags: Record<Locale, string> = {
 };
 
 export default function BazaarNav({
-  eventTitle = "GloTrade Bazaar Abuja 2026",
-  eventDateLabel = "12 Sept 2026",
+  eventTitle = "GloTrade International Trade Fair 2026",
+  eventDateLabel = "1st – 5th Dec 2026",
   isPortalActive: propIsPortalActive,
 }: BazaarNavProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -93,15 +93,16 @@ export default function BazaarNav({
   const isPortalActive = activeStatus ?? true;
 
   const navLinks = [
-    { href: "/bazaar", label: translate("bazaar.navHome") || "Home" },
-    { href: "/bazaar/about", label: translate("bazaar.navAbout") || "About" },
-    { href: "/bazaar/tickets", label: translate("bazaar.navTickets") || "Tickets" },
-    { href: "/bazaar/exhibitors", label: translate("bazaar.navExhibitors") || "Exhibitors" },
-    { href: "/bazaar/sponsorship", label: translate("bazaar.navSponsorship") || "Sponsorship" },
-    { href: "/bazaar/programme", label: translate("bazaar.navProgramme") || "Programme" },
-    { href: "/bazaar/venue", label: translate("bazaar.navVenue") || "Venue" },
-    { href: "/bazaar/gallery", label: translate("bazaar.navGallery") || "Gallery" },
-    { href: "/bazaar/contact", label: translate("bazaar.navContact") || "Contact" },
+    { href: "/trade-fair", label: translate("bazaar.navHome") || "Home" },
+    { href: "/trade-fair/about", label: translate("bazaar.navAbout") || "About" },
+    { href: "/trade-fair/tickets", label: translate("bazaar.navTickets") || "Tickets" },
+    { href: "/trade-fair/exhibitors", label: translate("bazaar.navExhibitors") || "Exhibitors" },
+    { href: "/trade-fair/promoter", label: "Promoters" },
+    { href: "/trade-fair/sponsorship", label: translate("bazaar.navSponsorship") || "Sponsorship" },
+    { href: "/trade-fair/programme", label: translate("bazaar.navProgramme") || "Programme" },
+    { href: "/trade-fair/venue", label: translate("bazaar.navVenue") || "Venue" },
+    { href: "/trade-fair/gallery", label: translate("bazaar.navGallery") || "Gallery" },
+    { href: "/trade-fair/contact", label: translate("bazaar.navContact") || "Contact" },
   ];
 
   return (
@@ -111,10 +112,10 @@ export default function BazaarNav({
         {/* Left: Date & Venue */}
         <div className="flex items-center gap-2 sm:gap-3">
           <span className="flex items-center gap-1 font-bold text-[11px] sm:text-xs">
-            <Calendar size={13} className="shrink-0 text-slate-950" /> {eventDateLabel} • Harrow Park, Abuja
+            <Calendar size={13} className="shrink-0 text-slate-950" /> {eventDateLabel} • NACCAS, Asokoro, Abuja
           </span>
           <span className="hidden md:inline text-amber-950/40">|</span>
-          <span className="hidden md:inline text-[11px] sm:text-xs">{translate("bazaar.annualFestival") || "Annual Trade & Cultural Festival"}</span>
+          <span className="hidden md:inline text-[11px] sm:text-xs">{translate("bazaar.annualFestival") || "International Trade & Investment Expo"}</span>
         </div>
 
         {/* Right: Phone Number, Language Selector & Main Platform Link */}
@@ -185,19 +186,19 @@ export default function BazaarNav({
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
           {/* Brand Logo */}
-          <Link href="/bazaar" className="flex items-center gap-3 group">
+          <Link href="/trade-fair" className="flex items-center gap-3 group">
             <div className="w-12 h-12 rounded-xl bg-slate-900 border border-amber-500/40 flex items-center justify-center shadow-lg shadow-amber-500/20 group-hover:scale-105 transition-transform overflow-hidden">
-              <img src="/bazaar_logo.jpg" alt="GloTrade Bazaar Logo" className="w-full h-full object-cover" />
+              <img src="/bazaar_logo.jpg" alt="GloTrade International Trade Fair Logo" className="w-full h-full object-cover" />
             </div>
             <div>
               <span className="text-lg sm:text-xl font-extrabold tracking-tight bg-gradient-to-r from-amber-400 via-amber-200 to-amber-400 bg-clip-text text-transparent">
-                GLOTRADE BAZAAR
+                GLOTRADE TRADE FAIR
               </span>
               <p className="text-[10px] uppercase tracking-widest text-amber-400/80 font-medium">
-                Abuja 2026 Edition
+                International Trade Fair 2026 · Abuja
               </p>
             </div>
           </Link>
@@ -206,9 +207,9 @@ export default function BazaarNav({
           <nav className="hidden lg:flex items-center gap-1">
             {navLinks.map((link) => {
               const isActive =
-                link.href === "/bazaar"
-                  ? pathname === "/bazaar"
-                  : pathname.startsWith(link.href);
+                link.href === "/trade-fair"
+                  ? pathname === "/trade-fair" || pathname === "/bazaar"
+                  : pathname.startsWith(link.href) || pathname.startsWith(link.href.replace("/trade-fair", "/bazaar"));
               return (
                 <Link
                   key={link.href}
@@ -229,10 +230,10 @@ export default function BazaarNav({
           <div className="hidden lg:flex items-center gap-3">
             {isPortalActive ? (
               <Link
-                href="/bazaar/tickets"
-                className="px-5 py-2.5 rounded-full bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-400 hover:to-amber-300 text-slate-950 font-bold text-sm shadow-lg shadow-amber-500/20 transition-all hover:scale-105"
+                href="/trade-fair/tickets"
+                className="px-5 py-2.5 rounded-full bg-gradient-to-r from-emerald-500 via-amber-400 to-amber-500 hover:from-emerald-400 hover:to-amber-400 text-slate-950 font-black text-sm shadow-lg shadow-amber-500/20 transition-all hover:scale-105"
               >
-                {translate("bazaar.bookTicketsCta") || "Book Tickets"}
+                {translate("bazaar.bookTicketsCta") || "Get Fast-Track QR Pass"}
               </Link>
             ) : (
               <span className="px-4 py-2 rounded-full bg-slate-800 text-amber-400/80 text-xs font-semibold border border-amber-500/20">
@@ -297,10 +298,10 @@ export default function BazaarNav({
               <Phone size={16} /> +234 704 460 0924 (WhatsApp)
             </a>
             <a
-              href="mailto:glotradebazaar@glotrade.online"
+              href="mailto:tradefair@glotrade.online"
               className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl bg-slate-950 text-slate-300 font-medium border border-slate-800 text-xs"
             >
-              <Mail size={14} /> glotradebazaar@glotrade.online
+              <Mail size={14} /> tradefair@glotrade.online
             </a>
           </div>
 
@@ -308,9 +309,9 @@ export default function BazaarNav({
           <div className="space-y-1 pt-2">
             {navLinks.map((link) => {
               const isActive =
-                link.href === "/bazaar"
-                  ? pathname === "/bazaar"
-                  : pathname.startsWith(link.href);
+                link.href === "/trade-fair"
+                  ? pathname === "/trade-fair" || pathname === "/bazaar"
+                  : pathname.startsWith(link.href) || pathname.startsWith(link.href.replace("/trade-fair", "/bazaar"));
               return (
                 <Link
                   key={link.href}
@@ -331,11 +332,11 @@ export default function BazaarNav({
           {isPortalActive && (
             <div className="pt-2 space-y-2">
               <Link
-                href="/bazaar/tickets"
+                href="/trade-fair/tickets"
                 onClick={() => setMobileMenuOpen(false)}
-                className="block text-center w-full py-3.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-base shadow-lg shadow-amber-500/20 transition-all"
+                className="block text-center w-full py-3.5 rounded-xl bg-gradient-to-r from-emerald-500 via-amber-400 to-amber-500 hover:from-emerald-400 hover:to-amber-400 text-slate-950 font-black text-base shadow-lg shadow-amber-500/20 transition-all"
               >
-                Book Tickets Now
+                {translate("bazaar.bookTicketsCta") || "Get Fast-Track QR Pass · Free"}
               </Link>
 
               <Link

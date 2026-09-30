@@ -1,163 +1,361 @@
 "use client";
+
 import BazaarNav from "@/components/bazaar/BazaarNav";
 import BazaarFooter from "@/components/bazaar/BazaarFooter";
 import Link from "next/link";
-import { Sparkles, Calendar, MapPin, Target, Users, ShieldCheck, ArrowRight, Award, ShoppingBag } from "lucide-react";
+import {
+  Sparkles,
+  Calendar,
+  MapPin,
+  Target,
+  Users,
+  ShieldCheck,
+  ArrowRight,
+  Award,
+  ShoppingBag,
+  Globe,
+  TrendingUp,
+  Building2,
+  CheckCircle2,
+  Layers,
+  Zap,
+  Handshake,
+  FileText,
+  Compass,
+  Briefcase,
+  Star,
+} from "lucide-react";
 import { translate } from "@/utils/translate";
+
+const pillars = [
+  {
+    icon: Users,
+    title: "Empower African Entrepreneurs",
+    subtitle: "Inclusion & Capacity",
+    desc: "Targeted support for women-owned enterprises, youth innovators, and rural agribusiness producers to scale into formal export channels.",
+    badge: "Pillar 01",
+  },
+  {
+    icon: Globe,
+    title: "AfCFTA Continental Integration",
+    subtitle: "Cross-Border Trade",
+    desc: "Unlocking tariff-free commerce across 54 African nations, eliminating trade bottlenecks, and establishing unified supply chain corridors.",
+    badge: "Pillar 02",
+  },
+  {
+    icon: ShoppingBag,
+    title: "Promote African Value-Addition",
+    subtitle: "Industrial Processing",
+    desc: "Moving beyond raw commodity exports by showcasing refined manufacturing, packaged agro-goods, textiles, and technology solutions.",
+    badge: "Pillar 03",
+  },
+  {
+    icon: Handshake,
+    title: "Catalyze Global Investment",
+    subtitle: "Bilateral Dealmaking",
+    desc: "Connecting high-growth African enterprises with sovereign wealth funds, commercial banks, impact investors, and international procurement agencies.",
+    badge: "Pillar 04",
+  },
+];
+
+const roadmapSteps = [
+  {
+    phase: "Phase 1 · Q1–Q2 2026",
+    title: "Exhibitor & Sovereign Mobilization",
+    desc: "Allocating 200+ stalls across light manufacturing, fintech, agro-allied, and national export boards.",
+  },
+  {
+    phase: "Phase 2 · Q3 2026",
+    title: "Buyer Matchmaking & Accreditation",
+    desc: "Screening verified international procurement buyers, retail distributors, and institutional delegates.",
+  },
+  {
+    phase: "Phase 3 · Nov 2026",
+    title: "Final Floor Plans & Protocol Setup",
+    desc: "Rigging inspection, bilateral deal room allocations, and customs clearance for overseas sample cargo.",
+  },
+  {
+    phase: "Phase 4 · Dec 1–5, 2026",
+    title: "The Trade Fair & Summit Execution",
+    desc: "5 days of exhibitions, 30+ keynote panels, bilateral trade deals, and the GloTrade Excellence Gala.",
+  },
+];
+
+const impactGoals = [
+  { value: "₦500M+", label: "Target Trade Volume", detail: "In verified B2B distribution and supply contracts" },
+  { value: "10,000+", label: "Trade Delegates", detail: "Importers, exporters, policy leaders, and investors" },
+  { value: "20+", label: "Sovereign Nations", detail: "Represented via national pavilions & trade delegations" },
+  { value: "200+", label: "Exhibitor Brands", detail: "Across manufacturing, agro, energy, and digital tech" },
+];
 
 export default function AboutPage() {
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans">
+    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans selection:bg-amber-500 selection:text-slate-950">
       <BazaarNav />
 
-      <main className="flex-1 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        {/* Presenter Pill & Heading */}
-        <div className="text-center mb-16">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-extrabold uppercase tracking-widest mb-4">
-            <Award size={14} className="text-amber-400" /> AL ABAMA GROUP PRESENTS
-          </div>
-          <h1 className="text-3xl sm:text-5xl font-black text-white mt-2 max-w-4xl mx-auto leading-tight">
-            GLOTRADE BAZAAR ABUJA – 2026
-          </h1>
-          <p className="text-amber-300 font-extrabold text-base sm:text-lg max-w-3xl mx-auto mt-3 uppercase tracking-wide">
-            “Empowering Women and Youth Entrepreneurs Through Global Market Inclusion.”
-          </p>
-        </div>
+      <main className="flex-1">
+        {/* Hero Section */}
+        <section className="relative overflow-hidden py-20 lg:py-28 bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 border-b border-slate-800">
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[900px] h-[400px] bg-amber-500/10 blur-[140px] rounded-full pointer-events-none" />
 
-        {/* About GLOTRADE */}
-        <div className="bg-slate-900 border border-slate-800 rounded-3xl p-8 sm:p-12 mb-12 space-y-6 shadow-2xl">
-          <div>
-            <span className="text-xs font-extrabold uppercase tracking-widest text-amber-400 bg-amber-500/10 px-3 py-1 rounded-full border border-amber-500/30">
-              About GLOTRADE
-            </span>
-            <h2 className="text-2xl sm:text-3xl font-black text-white mt-4 mb-4">
-              Bridging Global Market Gap for African MSMEs
-            </h2>
-            <div className="space-y-4 text-slate-300 text-base leading-relaxed">
-              <p>
-                <strong className="text-amber-400 font-bold">GLOTRADE Platform Limited</strong> is an African-focused trade and market development platform committed to bridging the gap between African producers, entrepreneurs, MSMEs, suppliers, buyers, and international markets.
-              </p>
-              <p>
-                Under the vision of <span className="text-amber-300 font-semibold">“Bridging Global Market Gap for African MSMEs,”</span> Glotrade provides opportunities for businesses to showcase their products, establish commercial relationships, access new markets, and participate in local and international trade opportunities.
-              </p>
-              <p>
-                <strong className="text-white font-bold">GLOTRADE BAZAAR ABUJA – 2026</strong> is designed as a major platform for promoting entrepreneurship, trade, innovation, investment, and economic inclusion, with particular emphasis on women-owned businesses and young entrepreneurs.
-              </p>
+          <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-black uppercase tracking-widest mb-6 shadow-sm">
+              <Award size={14} className="text-amber-400" /> AL ABAMA GROUP & GLOTRADE PRESENT
             </div>
-          </div>
-        </div>
 
-        {/* Our Vision & Event Details Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-8 mb-16">
-          {/* Our Vision */}
-          <div className="md:col-span-7 bg-gradient-to-br from-slate-900 via-amber-950/30 to-slate-950 border-2 border-amber-500/40 rounded-3xl p-8 sm:p-10 shadow-2xl flex flex-col justify-between">
-            <div>
-              <div className="w-12 h-12 rounded-2xl bg-amber-500/20 border border-amber-500/40 text-amber-400 flex items-center justify-center mb-6 shadow-lg shadow-amber-500/10">
-                <Sparkles size={26} />
-              </div>
-              <span className="text-xs font-extrabold uppercase tracking-widest text-amber-400 bg-amber-500/10 px-3 py-1 rounded-full border border-amber-500/30">
-                Our Vision
+            <h1 className="text-4xl sm:text-6xl lg:text-7xl font-black text-white tracking-tight leading-tight mb-6">
+              GLOTRADE INTERNATIONAL <br />
+              <span className="bg-gradient-to-r from-amber-400 via-amber-300 to-amber-500 bg-clip-text text-transparent">
+                TRADE FAIR 2026
               </span>
-              <h3 className="text-2xl font-black text-white mt-4 mb-4">
-                Building an Inclusive African Marketplace
-              </h3>
-              <p className="text-slate-200 text-base sm:text-lg leading-relaxed font-medium">
-                To build an inclusive African marketplace where women, youth, MSMEs, producers, and entrepreneurs can connect with opportunities beyond their immediate markets and participate meaningfully in regional and global trade.
+            </h1>
+
+            <p className="text-amber-300 font-extrabold text-lg sm:text-2xl max-w-4xl mx-auto uppercase tracking-wide mb-8">
+              &ldquo;Connecting African MSMEs to Global Markets, Investment & Innovation&rdquo;
+            </p>
+
+            <p className="text-slate-300 text-base sm:text-lg max-w-3xl mx-auto leading-relaxed mb-10">
+              West Africa&apos;s premier multi-sector trade exposition driving intra-African economic integration under the
+              African Continental Free Trade Area (AfCFTA), industrial innovation, and cross-border commercial partnerships.
+            </p>
+
+            {/* Quick Details Bar */}
+            <div className="inline-flex flex-wrap items-center justify-center gap-6 sm:gap-8 bg-slate-900/90 border border-amber-500/30 rounded-2xl p-4 sm:px-8 sm:py-5 shadow-2xl backdrop-blur-md">
+              <div className="flex items-center gap-2.5 text-slate-200 text-sm">
+                <Calendar className="text-amber-400 shrink-0" size={18} />
+                <span className="font-semibold">1st – 5th December 2026</span>
+              </div>
+              <div className="hidden sm:block w-px h-6 bg-slate-700" />
+              <div className="flex items-center gap-2.5 text-slate-200 text-sm">
+                <MapPin className="text-amber-400 shrink-0" size={18} />
+                <span className="font-semibold">Abuja, Federal Capital Territory, Nigeria</span>
+              </div>
+              <div className="hidden sm:block w-px h-6 bg-slate-700" />
+              <div className="flex items-center gap-2.5 text-amber-400 text-sm font-bold">
+                <Users size={18} className="shrink-0" />
+                <span>10,000+ Expected Delegates</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Executive Summary & Mission Feature (Side-by-side with Photography) */}
+        <section className="py-20 lg:py-28 bg-slate-950">
+          <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+              {/* Photo Showcase */}
+              <div className="lg:col-span-6 relative">
+                <div className="relative rounded-3xl overflow-hidden border border-amber-500/30 shadow-2xl group bg-slate-900">
+                  <div className="aspect-[4/3] w-full overflow-hidden relative">
+                    <img
+                      src="/images/tradefair/hall.jpg"
+                      alt="GloTrade International Trade Fair 2026 - Exhibition Floor"
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent" />
+                  </div>
+                  <div className="absolute bottom-6 left-6 right-6 p-5 rounded-2xl bg-slate-950/90 backdrop-blur-md border border-slate-800">
+                    <span className="text-xs font-bold uppercase tracking-wider text-amber-400 block mb-1">
+                      Pan-African Commercial Gateway
+                    </span>
+                    <p className="text-white text-sm font-semibold">
+                      Bridging the market access gap for 44 million African MSMEs and producers.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Text Story */}
+              <div className="lg:col-span-6 space-y-6">
+                <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-bold uppercase tracking-wider">
+                  <ShieldCheck size={14} /> Institutional Mandate
+                </div>
+
+                <h2 className="text-3xl sm:text-4xl font-black text-white leading-tight">
+                  Bridging the Global Market Gap for African Producers
+                </h2>
+
+                <div className="space-y-4 text-slate-300 text-base leading-relaxed">
+                  <p>
+                    <strong className="text-amber-400 font-bold">GLOTRADE Platform Limited</strong> is an African-focused
+                    trade acceleration and market development institution dedicated to connecting indigenous manufacturers,
+                    artisans, agro-processors, and innovators directly with verified regional and international buyers.
+                  </p>
+                  <p>
+                    While Africa accounts for nearly 18% of global population, intra-African trade historically represents
+                    less than 16% of total continental exports. With the operationalization of the{" "}
+                    <strong className="text-white">African Continental Free Trade Area (AfCFTA)</strong>, GloTrade Trade Fair
+                    2026 acts as a practical commercial engine to turn policy into signed distribution agreements.
+                  </p>
+                  <p>
+                    Backed by <strong className="text-white">Al Abama Group</strong>, this 5-day event brings together
+                    multilateral trade ministries, commercial banking syndicates, venture capitalists, and thousands of
+                    commercial buyers under a unified exhibition and dealmaking environment.
+                  </p>
+                </div>
+
+                <div className="pt-4 flex flex-wrap gap-4">
+                  <Link
+                    href="/trade-fair/exhibitors"
+                    className="px-6 py-3.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-sm shadow-xl shadow-amber-500/20 transition-all hover:scale-105 inline-flex items-center gap-2"
+                  >
+                    Exhibitor Registration <ArrowRight size={16} />
+                  </Link>
+                  <Link
+                    href="/trade-fair/programme"
+                    className="px-6 py-3.5 rounded-xl bg-slate-900 border border-slate-700 hover:bg-slate-800 text-white font-bold text-sm transition-all inline-flex items-center gap-2"
+                  >
+                    View 5-Day Schedule
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Core Pillars Grid */}
+        <section className="py-20 bg-slate-900/40 border-t border-slate-800">
+          <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center mb-16">
+              <span className="text-xs font-bold uppercase tracking-widest text-amber-400 bg-amber-500/10 px-4 py-1.5 rounded-full border border-amber-500/30">
+                Strategic Foundation
+              </span>
+              <h2 className="text-3xl sm:text-4xl font-black text-white mt-4 mb-3">
+                The Four Pillars of GloTrade 2026
+              </h2>
+              <p className="text-slate-400 max-w-2xl mx-auto text-base">
+                Every exhibition pavilion, summit session, and networking reception is anchored on four strategic pillars.
               </p>
             </div>
-            <div className="mt-8 p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-bold flex items-center gap-3">
-              <ShieldCheck size={20} className="shrink-0 text-amber-400" />
-              <span>GLOTRADE Platform Limited — Empowering African Producers</span>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {pillars.map((item, i) => (
+                <div
+                  key={i}
+                  className="bg-slate-950 border border-slate-800 hover:border-amber-500/40 rounded-3xl p-7 flex flex-col justify-between transition-all group hover:-translate-y-1 shadow-lg"
+                >
+                  <div>
+                    <div className="flex items-center justify-between mb-6">
+                      <div className="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 group-hover:scale-110 transition-transform">
+                        <item.icon size={22} />
+                      </div>
+                      <span className="text-[10px] font-black uppercase tracking-widest text-amber-400 bg-amber-500/10 px-2.5 py-1 rounded-full border border-amber-500/20">
+                        {item.badge}
+                      </span>
+                    </div>
+
+                    <span className="text-xs font-bold text-amber-400/90 block mb-1">{item.subtitle}</span>
+                    <h3 className="text-xl font-bold text-white mb-3 group-hover:text-amber-400 transition-colors">
+                      {item.title}
+                    </h3>
+                    <p className="text-xs text-slate-400 leading-relaxed">{item.desc}</p>
+                  </div>
+
+                  <div className="pt-6 mt-6 border-t border-slate-900 flex items-center gap-2 text-xs text-slate-500">
+                    <CheckCircle2 size={14} className="text-amber-400" />
+                    <span>GloTrade 2026 Deliverable</span>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
+        </section>
 
-          {/* Quick Info Stats */}
-          <div className="md:col-span-5 flex flex-col gap-4">
-            <div className="bg-slate-900 p-6 rounded-2xl border border-slate-800 flex items-start gap-4 flex-1">
-              <div className="p-3 bg-amber-500/10 text-amber-400 rounded-xl border border-amber-500/30">
-                <Users size={24} />
+        {/* Quantitative Macroeconomic Targets */}
+        <section className="py-20 bg-slate-950 border-t border-slate-800">
+          <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="bg-gradient-to-r from-slate-900 via-amber-950/20 to-slate-900 border border-amber-500/30 rounded-3xl p-8 sm:p-12 relative overflow-hidden">
+              <div className="text-center max-w-2xl mx-auto mb-12">
+                <span className="text-xs font-bold uppercase tracking-widest text-amber-400 bg-amber-500/10 px-4 py-1.5 rounded-full border border-amber-500/30">
+                  Targeted Outcomes
+                </span>
+                <h3 className="text-3xl font-black text-white mt-4 mb-2">
+                  Expected Impact & Measurable Value
+                </h3>
+                <p className="text-slate-400 text-sm">
+                  Concrete performance metrics targeted across the five exhibition days in Abuja.
+                </p>
               </div>
-              <div>
-                <h4 className="font-bold text-white text-base">3,000+ Attendees</h4>
-                <p className="text-xs text-slate-400 mt-1">Connecting MSMEs, investors, vendors, and vibrant guests.</p>
-              </div>
-            </div>
 
-            <div className="bg-slate-900 p-6 rounded-2xl border border-slate-800 flex items-start gap-4 flex-1">
-              <div className="p-3 bg-amber-500/10 text-amber-400 rounded-xl border border-amber-500/30">
-                <Calendar size={24} />
-              </div>
-              <div>
-                <h4 className="font-bold text-white text-base">12 September 2026</h4>
-                <p className="text-xs text-slate-400 mt-1">Starting 9:00 AM - 12:00 AM at Harrow Park, Abuja.</p>
-              </div>
-            </div>
-
-            <div className="bg-slate-900 p-6 rounded-2xl border border-slate-800 flex items-start gap-4 flex-1">
-              <div className="p-3 bg-amber-500/10 text-amber-400 rounded-xl border border-amber-500/30">
-                <MapPin size={24} />
-              </div>
-              <div>
-                <h4 className="font-bold text-white text-base">Harrow Park, Abuja</h4>
-                <p className="text-xs text-slate-400 mt-1">Central Business District, FCT, Nigeria.</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                {impactGoals.map((goal, i) => (
+                  <div key={i} className="bg-slate-950/80 border border-slate-800 rounded-2xl p-6 text-center space-y-2">
+                    <div className="text-3xl sm:text-4xl font-black text-amber-400">{goal.value}</div>
+                    <div className="text-sm font-bold text-white">{goal.label}</div>
+                    <div className="text-xs text-slate-400">{goal.detail}</div>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
-        </div>
+        </section>
 
-        {/* Our Message & 4 Pillars */}
-        <div className="bg-slate-900/60 border border-slate-800 rounded-3xl p-8 sm:p-12 mb-16 text-center">
-          <span className="text-xs font-extrabold uppercase tracking-widest text-amber-400 bg-amber-500/10 px-4 py-1.5 rounded-full border border-amber-500/30">
-            Our Message
-          </span>
-          <h2 className="text-3xl font-black text-white mt-4 mb-8">
-            Core Value Pillars
-          </h2>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 text-left">
-            <div className="bg-slate-950 p-6 rounded-2xl border border-slate-800">
-              <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 flex items-center justify-center mb-4">
-                <Users size={20} />
-              </div>
-              <h3 className="font-bold text-white text-base mb-1">Empower the Entrepreneur</h3>
-              <p className="text-xs text-slate-400">Supporting women-owned & youth-led businesses.</p>
+        {/* Roadmap from Launch to December 2026 */}
+        <section className="py-20 bg-slate-900/30 border-t border-slate-800">
+          <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center mb-16">
+              <span className="text-xs font-bold uppercase tracking-widest text-amber-400 bg-amber-500/10 px-4 py-1.5 rounded-full border border-amber-500/30">
+                Implementation Roadmap
+              </span>
+              <h2 className="text-3xl sm:text-4xl font-black text-white mt-4 mb-3">
+                Milestones Leading to Abuja 2026
+              </h2>
+              <p className="text-slate-400 max-w-xl mx-auto text-base">
+                Structured execution phases ensuring seamless delegate accreditation and exhibitor success.
+              </p>
             </div>
 
-            <div className="bg-slate-950 p-6 rounded-2xl border border-slate-800">
-              <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 flex items-center justify-center mb-4">
-                <ShoppingBag size={20} />
-              </div>
-              <h3 className="font-bold text-white text-base mb-1">Connect the Market</h3>
-              <p className="text-xs text-slate-400">Linking local suppliers with regional & global buyers.</p>
-            </div>
-
-            <div className="bg-slate-950 p-6 rounded-2xl border border-slate-800">
-              <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 flex items-center justify-center mb-4">
-                <Award size={20} />
-              </div>
-              <h3 className="font-bold text-white text-base mb-1">Promote African Products</h3>
-              <p className="text-xs text-slate-400">Showcasing high-quality African commodities & goods.</p>
-            </div>
-
-            <div className="bg-slate-950 p-6 rounded-2xl border border-slate-800">
-              <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 flex items-center justify-center mb-4">
-                <Sparkles size={20} />
-              </div>
-              <h3 className="font-bold text-white text-base mb-1">Create Global Opportunities</h3>
-              <p className="text-xs text-slate-400">Enabling cross-border trade & commercial growth.</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {roadmapSteps.map((step, i) => (
+                <div key={i} className="bg-slate-950 border border-slate-800 rounded-2xl p-6 relative">
+                  <div className="text-xs font-bold text-amber-400 uppercase tracking-wider mb-2">{step.phase}</div>
+                  <h4 className="text-base font-bold text-white mb-2">{step.title}</h4>
+                  <p className="text-xs text-slate-400 leading-relaxed">{step.desc}</p>
+                </div>
+              ))}
             </div>
           </div>
-        </div>
+        </section>
 
-        {/* CTA */}
-        <div className="text-center">
-          <Link
-            href="/bazaar/tickets"
-            className="inline-flex items-center gap-2 px-8 py-4 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-base shadow-lg transition-all"
-          >
-            {translate("bazaar.bookTicketsCta") || "Book Event Tickets"} <ArrowRight size={18} />
-          </Link>
-        </div>
+        {/* Final Conversion CTA */}
+        <section className="py-20 bg-gradient-to-r from-slate-950 via-amber-950/30 to-slate-950 border-t border-amber-500/20">
+          <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative">
+            <div className="relative z-10">
+              <div className="inline-flex items-center gap-2 mb-6 px-4 py-2 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-bold uppercase tracking-widest">
+                <Sparkles size={14} /> Be Part of the Movement
+              </div>
+
+              <h2 className="text-3xl sm:text-5xl font-black text-white mb-4">
+                Partner with GloTrade 2026
+              </h2>
+
+              <p className="text-slate-300 text-base sm:text-lg max-w-2xl mx-auto mb-10 leading-relaxed">
+                Whether you are an SME looking for export buyers, a multinational brand seeking sponsorship prominence, or a trade envoy representing your sovereign nation — your platform is in Abuja.
+              </p>
+
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                <Link
+                  href="/trade-fair/tickets"
+                  className="w-full sm:w-auto px-8 py-4 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-base shadow-xl shadow-amber-500/20 transition-all hover:scale-105 inline-flex items-center justify-center gap-2"
+                >
+                  <Star size={18} /> Book Delegate Ticket
+                </Link>
+                <Link
+                  href="/trade-fair/exhibitors"
+                  className="w-full sm:w-auto px-8 py-4 rounded-xl bg-slate-900 border border-slate-700 hover:bg-slate-800 text-white font-bold text-base transition-all inline-flex items-center justify-center gap-2"
+                >
+                  Reserve Stalls <ArrowRight size={16} />
+                </Link>
+                <Link
+                  href="/trade-fair/contact"
+                  className="w-full sm:w-auto px-8 py-4 rounded-xl bg-slate-900 border border-amber-500/30 text-amber-400 hover:bg-slate-800 font-bold text-base transition-all inline-flex items-center justify-center gap-2"
+                >
+                  Contact Secretariat
+                </Link>
+              </div>
+            </div>
+          </div>
+        </section>
       </main>
 
       <BazaarFooter />

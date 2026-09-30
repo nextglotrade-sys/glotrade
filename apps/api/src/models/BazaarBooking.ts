@@ -22,6 +22,7 @@ export interface IAuditLogEntry {
 }
 
 export interface IBazaarBooking extends Document {
+  eventId?: string;
   reference: string;
   ticketCode: string;
   type: "ticket" | "exhibitor" | "sponsorship" | "contact";
@@ -45,6 +46,11 @@ export interface IBazaarBooking extends Document {
   checkedInBy?: IAdminActor;
   lastModifiedBy?: IAdminActor;
   auditLogs?: IAuditLogEntry[];
+  promoterCode?: string;
+  promoterId?: mongoose.Schema.Types.ObjectId | string;
+  promoterCommissionPercent?: number;
+  promoterCommissionAmount?: number;
+  promoterCommissionStatus?: "pending" | "approved" | "paid" | "cancelled";
   createdAt: Date;
   updatedAt: Date;
 }
@@ -78,6 +84,7 @@ const AuditLogEntrySchema = new Schema(
 
 const BazaarBookingSchema: Schema = new Schema(
   {
+    eventId: { type: String, default: "tradefair_2026", index: true },
     reference: { type: String, required: true, unique: true, index: true },
     ticketCode: { type: String, required: true, unique: true, index: true },
     type: {
@@ -115,6 +122,16 @@ const BazaarBookingSchema: Schema = new Schema(
     checkedInBy: { type: AdminActorSchema },
     lastModifiedBy: { type: AdminActorSchema },
     auditLogs: { type: [AuditLogEntrySchema], default: [] },
+    promoterCode: { type: String, uppercase: true, trim: true, index: true },
+    promoterId: { type: Schema.Types.ObjectId, ref: "BazaarPromoter", index: true },
+    promoterCommissionPercent: { type: Number },
+    promoterCommissionAmount: { type: Number },
+    promoterCommissionStatus: {
+      type: String,
+      enum: ["pending", "approved", "paid", "cancelled"],
+      default: undefined,
+      index: true,
+    },
   },
   { timestamps: true }
 );

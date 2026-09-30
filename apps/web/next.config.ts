@@ -71,6 +71,38 @@ const nextConfig: NextConfig = {
         destination: '/admin',
         permanent: true,
       },
+      // Redirect old /bazaar URL → /trade-fair so the address bar always reflects the new branding
+      {
+        source: '/bazaar',
+        destination: '/trade-fair',
+        permanent: false, // Use temporary (307) to allow future flexibility; change to true once domain is stable
+      },
+      {
+        source: '/bazaar/:path*',
+        destination: '/trade-fair/:path*',
+        permanent: false,
+      },
+    ];
+  },
+
+  async rewrites() {
+    return [
+      {
+        source: '/trade-fair',
+        destination: '/bazaar',
+      },
+      {
+        source: '/trade-fair/:path*',
+        destination: '/bazaar/:path*',
+      },
+      {
+        source: '/tradefair',
+        destination: '/bazaar',
+      },
+      {
+        source: '/tradefair/:path*',
+        destination: '/bazaar/:path*',
+      },
     ];
   },
 

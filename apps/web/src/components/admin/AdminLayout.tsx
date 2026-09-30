@@ -21,7 +21,8 @@ import {
   CreditCard,
   TicketPercent,
   ChevronDown,
-  Ticket
+  Ticket,
+  History,
 } from "lucide-react";
 import { logout } from "@/utils/auth";
 
@@ -29,14 +30,14 @@ const managerWorkspaceByRole: Record<string, string> = {
   product_manager: "/admin/products",
   order_manager: "/admin/orders",
   insured_partners_manager: "/admin/gdip",
-  bazaar_manager: "/admin/bazaar",
+  bazaar_manager: "/admin/trade-fair",
 };
 
 const managerRoleLabels: Record<string, string> = {
   product_manager: "Product Manager",
   order_manager: "Order Manager",
   insured_partners_manager: "Insured Partners Manager",
-  bazaar_manager: "Event Bazaar Manager",
+  bazaar_manager: "Event & Trade Fair Manager",
 };
 
 const isManagerRole = (role?: string) => Boolean(role && managerWorkspaceByRole[role]);
@@ -63,9 +64,15 @@ const adminMenuItems: MenuItem[] = [
     adminOnly: true
   },
   {
-    label: "GloTrade Bazaar",
-    href: "/admin/bazaar",
+    label: "Trade Fair 2026",
+    href: "/admin/trade-fair",
     icon: <Ticket size={20} />,
+    allowedRoles: ["admin", "bazaar_manager"]
+  },
+  {
+    label: "Bazaar Abuja (Archive)",
+    href: "/admin/bazaar",
+    icon: <History size={20} />,
     allowedRoles: ["admin", "bazaar_manager"]
   },
   {

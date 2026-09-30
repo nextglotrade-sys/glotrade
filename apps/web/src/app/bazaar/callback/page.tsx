@@ -32,7 +32,7 @@ function CallbackContent() {
           setBooking(b);
 
           // Generate QR Code encoding verification link
-          const verifyUrl = `${window.location.origin}/bazaar/verify?code=${b.ticketCode}`;
+          const verifyUrl = `${window.location.origin}/trade-fair/verify?code=${b.ticketCode}`;
           try {
             const qr = await QRCode.toDataURL(verifyUrl, {
               width: 220,
@@ -77,7 +77,7 @@ function CallbackContent() {
         <h2 className="text-2xl font-bold text-white mb-2">Payment Verification Issue</h2>
         <p className="text-sm text-slate-400 max-w-md mb-6">{error || "Unable to confirm booking reference."}</p>
         <Link
-          href="/bazaar/tickets"
+          href="/trade-fair/tickets"
           className="px-6 py-3 rounded-xl bg-amber-500 text-slate-950 font-bold text-sm hover:bg-amber-400 transition-colors"
         >
           Return to Tickets Page
@@ -104,10 +104,10 @@ function CallbackContent() {
         </div>
 
         <h1 className="text-3xl font-black text-white mb-2">
-          GloTrade Bazaar Pass
+          GloTrade International Trade Fair Pass
         </h1>
         <p className="text-xs text-slate-400 mb-6">
-          Saturday, 12 September 2026 • Harrow Park, Abuja
+          1st – 5th December 2026 • Abuja, Nigeria
         </p>
 
         {/* Email Notification Alert Banner */}
