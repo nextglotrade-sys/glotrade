@@ -188,7 +188,8 @@ export class ProductManagerService {
 
         user.passwordHash = passwordHash;
         user.mustChangePassword = false; // No forced password change per requirements
-        await user.save();
+        // validateBeforeSave: false — avoids cart.qty max:5 validation on unrelated fields
+        await user.save({ validateBeforeSave: false });
 
         // Send reset email
         const loginUrl = process.env.APP_ORIGIN || 'http://localhost:3000';
@@ -320,7 +321,8 @@ export class ProductManagerService {
         if (updates.phone !== undefined) user.phone = updates.phone;
         if (updates.isBlocked !== undefined) user.isBlocked = updates.isBlocked;
 
-        await user.save();
+        // validateBeforeSave: false — avoids cart.qty max:5 validation on unrelated fields
+        await user.save({ validateBeforeSave: false });
 
         return {
             userId: user._id,

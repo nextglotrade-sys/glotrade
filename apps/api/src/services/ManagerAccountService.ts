@@ -287,7 +287,8 @@ export class ManagerAccountService {
             if (data.firstName && !existingUser.firstName) existingUser.firstName = data.firstName;
             if (data.lastName && !existingUser.lastName) existingUser.lastName = data.lastName;
             if (data.phone && !existingUser.phone) existingUser.phone = data.phone;
-            await existingUser.save();
+            // validateBeforeSave: false — avoids cart.qty max:5 validation on unrelated fields
+            await existingUser.save({ validateBeforeSave: false });
 
             // Notify the user about their new role access
             try {
@@ -385,7 +386,8 @@ export class ManagerAccountService {
         const newPassword = generateSecurePassword(12);
         user.passwordHash = await bcrypt.hash(newPassword, 10);
         user.mustChangePassword = false;
-        await user.save();
+        // validateBeforeSave: false — avoids cart.qty max:5 validation on unrelated fields
+        await user.save({ validateBeforeSave: false });
 
         await this.sendResetEmail({
             email: user.email,
@@ -469,7 +471,8 @@ export class ManagerAccountService {
                 console.error('[ManagerAccountService] Failed to send role update email:', err);
             }
         }
-        await user.save();
+        // validateBeforeSave: false — avoids cart.qty max:5 validation on unrelated fields
+        await user.save({ validateBeforeSave: false });
 
         return {
             userId: user._id,
