@@ -44,14 +44,14 @@ const roleLabel: Record<ManagerRole, string> = {
   product_manager: 'Product Manager',
   order_manager: 'Order Manager',
   insured_partners_manager: 'Insured Partners Manager',
-  bazaar_manager: 'Event Bazaar Manager',
+  bazaar_manager: 'Trade Fair Manager',
 };
 
 const roleOptions: Array<{ value: ManagerRole; label: string; description: string }> = [
   { value: 'product_manager', label: 'Product Manager', description: 'Can access product management features.' },
   { value: 'order_manager', label: 'Order Manager', description: 'Can access order management features.' },
   { value: 'insured_partners_manager', label: 'Insured Partners Manager', description: 'Can access Insured Partners management features.' },
-  { value: 'bazaar_manager', label: 'Event Bazaar Manager', description: 'Can access GloTrade Bazaar event management and attendee verification.' },
+  { value: 'bazaar_manager', label: 'Trade Fair Manager', description: 'Can access the GloTrade International Trade Fair portal, stall bookings, promoter commissions and payout management.' },
 ];
 
 const managerRoles: ManagerRole[] = ['product_manager', 'order_manager', 'insured_partners_manager', 'bazaar_manager'];
@@ -225,7 +225,7 @@ export default function ManagerAccountsPage() {
               <Users className="text-blue-600" size={28} /> Manager Accounts
             </h1>
             <p className="text-xs sm:text-sm text-gray-500 mt-1">
-              Create and manage Product, Order, Insured Partners, and Event Bazaar Managers.
+              Create and manage Product, Order, Insured Partners, and Trade Fair Managers.
             </p>
           </div>
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
@@ -238,7 +238,7 @@ export default function ManagerAccountsPage() {
               <option value="product_manager">Product Managers</option>
               <option value="order_manager">Order Managers</option>
               <option value="insured_partners_manager">Insured Partners Managers</option>
-              <option value="bazaar_manager">Event Bazaar Managers</option>
+              <option value="bazaar_manager">Trade Fair Managers</option>
             </select>
             <Link
               href={roleFilter === 'all' ? '/admin/managers/new' : `/admin/managers/new?role=${roleFilter}`}
@@ -260,7 +260,7 @@ export default function ManagerAccountsPage() {
             <Users size={48} className="mx-auto mb-3 text-gray-300" />
             <h3 className="text-base sm:text-lg font-bold text-gray-900">No Manager Accounts Found</h3>
             <p className="mt-1 text-xs sm:text-sm text-gray-500 max-w-md mx-auto">
-              Get started by creating a Product, Order, Insured Partners, or Event Bazaar Manager account.
+              Get started by creating a Product, Order, Insured Partners, or Trade Fair Manager account.
             </p>
             <Link
               href={roleFilter === 'all' ? '/admin/managers/new' : `/admin/managers/new?role=${roleFilter}`}

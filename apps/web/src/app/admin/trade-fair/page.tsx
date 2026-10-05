@@ -39,6 +39,7 @@ import {
   Lock,
   ShieldAlert,
   Wallet,
+  Percent,
 } from "lucide-react";
 import { apiGet, apiPut, apiPost, apiPatch, apiDelete } from "@/utils/api";
 import QRCodeScanner from "@/components/wallet/QRCodeScanner";
@@ -626,102 +627,200 @@ export default function AdminTradeFairPage() {
             </div>
           )}
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          {/* Feature Toggles (5 Balanced Switch Cards) */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3.5 mb-6">
             {/* Master Portal Switch */}
-            <div className="p-4 bg-gray-50 rounded-xl border border-gray-200">
+            <div className="p-3.5 bg-gray-50 rounded-xl border border-gray-200 flex flex-col justify-between">
               <label className="flex items-center justify-between cursor-pointer">
-                <span className="text-xs font-bold text-gray-900">Trade Fair Portal Active</span>
+                <span className="text-xs font-bold text-gray-900">Trade Fair Portal</span>
                 <input
                   type="checkbox"
                   checked={config.isPortalActive}
                   onChange={(e) => setConfig({ ...config, isPortalActive: e.target.checked })}
-                  className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
+                  className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
                 />
               </label>
-              <p className="text-[11px] text-gray-500 mt-1">Master switch for `/trade-fair` & `/bazaar` accessibility.</p>
+              <p className="text-[11px] text-gray-500 mt-2">Master public portal switch</p>
             </div>
 
             {/* Ticket Sales Switch */}
-            <div className="p-4 bg-gray-50 rounded-xl border border-gray-200">
+            <div className="p-3.5 bg-gray-50 rounded-xl border border-gray-200 flex flex-col justify-between">
               <label className="flex items-center justify-between cursor-pointer">
-                <span className="text-xs font-bold text-gray-900">Delegate & Visitor Tickets</span>
+                <span className="text-xs font-bold text-gray-900">Delegate Tickets</span>
                 <input
                   type="checkbox"
                   checked={config.ticketSalesActive}
                   onChange={(e) => setConfig({ ...config, ticketSalesActive: e.target.checked })}
-                  className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
+                  className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
                 />
               </label>
-              <p className="text-[11px] text-gray-500 mt-1">Enable or pause delegate ticket purchases.</p>
+              <p className="text-[11px] text-gray-500 mt-2">Enable visitor ticket sales</p>
             </div>
 
             {/* Exhibitors Switch */}
-            <div className="p-4 bg-gray-50 rounded-xl border border-gray-200">
+            <div className="p-3.5 bg-gray-50 rounded-xl border border-gray-200 flex flex-col justify-between">
               <label className="flex items-center justify-between cursor-pointer">
-                <span className="text-xs font-bold text-gray-900">Exhibitor Booth Applications</span>
+                <span className="text-xs font-bold text-gray-900">Exhibitor Booths</span>
                 <input
                   type="checkbox"
                   checked={config.exhibitorApplicationsActive}
                   onChange={(e) =>
                     setConfig({ ...config, exhibitorApplicationsActive: e.target.checked })
                   }
-                  className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
+                  className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
                 />
               </label>
-              <p className="text-[11px] text-gray-500 mt-1">Enable or pause booth & stall bookings.</p>
+              <p className="text-[11px] text-gray-500 mt-2">Enable booth & stall bookings</p>
             </div>
 
             {/* Sponsorship Switch */}
-            <div className="p-4 bg-gray-50 rounded-xl border border-gray-200">
+            <div className="p-3.5 bg-gray-50 rounded-xl border border-gray-200 flex flex-col justify-between">
               <label className="flex items-center justify-between cursor-pointer">
-                <span className="text-xs font-bold text-gray-900">Corporate Sponsorships</span>
+                <span className="text-xs font-bold text-gray-900">Sponsorships</span>
                 <input
                   type="checkbox"
                   checked={config.sponsorshipActive}
                   onChange={(e) => setConfig({ ...config, sponsorshipActive: e.target.checked })}
-                  className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
+                  className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
                 />
               </label>
-              <p className="text-[11px] text-gray-500 mt-1">Enable corporate sponsorship applications.</p>
+              <p className="text-[11px] text-gray-500 mt-2">Enable corporate sponsorships</p>
             </div>
 
             {/* Promoter Referral Program Switch */}
-            <div className="p-4 bg-amber-50/50 rounded-xl border border-amber-200">
+            <div className={`p-3.5 rounded-xl border flex flex-col justify-between transition-colors ${
+              config.promoterProgramActive ?? true
+                ? "bg-amber-50/70 border-amber-300"
+                : "bg-gray-50 border-gray-200"
+            }`}>
               <label className="flex items-center justify-between cursor-pointer">
-                <span className="text-xs font-bold text-gray-900">Promoter Referral Program</span>
+                <span className="text-xs font-bold text-gray-900">Promoter Program</span>
                 <input
                   type="checkbox"
                   checked={config.promoterProgramActive ?? true}
                   onChange={(e) =>
                     setConfig({ ...config, promoterProgramActive: e.target.checked })
                   }
-                  className="w-5 h-5 text-amber-600 rounded focus:ring-amber-500"
+                  className="w-4 h-4 text-amber-600 rounded focus:ring-amber-500"
                 />
               </label>
-              <p className="text-[11px] text-gray-500 mt-1">Enable Trade Fair promoter sign-ups & links.</p>
+              <p className="text-[11px] text-gray-500 mt-2">Enable promoter referrals & links</p>
+            </div>
+          </div>
+
+          {/* Per-Package Promoter Commission Rates */}
+          <div className="border-t border-gray-100 pt-5 mt-2 space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div>
+                <h3 className="text-xs font-bold text-gray-800 uppercase tracking-wider flex items-center gap-1.5">
+                  <Percent size={16} className="text-amber-600" /> Promoter Commission Rates (%)
+                </h3>
+                <p className="text-[11px] text-gray-500 mt-0.5">
+                  Set independent commission rates per package. Promoters earn the configured % for each booking made through their link.
+                </p>
+              </div>
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200 w-fit">
+                9 Tier Rates Configured
+              </span>
             </div>
 
-            {/* Promoter Commission Rate (%) */}
-            <div className="p-4 bg-amber-50/50 rounded-xl border border-amber-200">
-              <label className="block text-xs font-bold text-gray-900 mb-1">
-                Promoter Commission Rate (%)
-              </label>
-              <div className="flex items-center gap-2">
-                <input
-                  type="number"
-                  min="0"
-                  max="100"
-                  value={config.promoterCommissionPercent ?? 5}
-                  onChange={(e) =>
-                    setConfig({ ...config, promoterCommissionPercent: Number(e.target.value) })
-                  }
-                  className="w-20 px-3 py-1.5 border border-amber-300 rounded-lg text-xs font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-amber-500 bg-white"
-                />
-                <span className="text-xs text-gray-600 font-semibold">% per confirmed stall</span>
+            <div className="p-4 bg-amber-50/40 rounded-xl border border-amber-200 space-y-4">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+                {/* Exhibitor Stall Bookings (Spans 2 columns, 2x3 grid) */}
+                <div className="lg:col-span-2 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <p className="text-[11px] font-bold uppercase tracking-wider text-amber-800 flex items-center gap-1.5">
+                      <Store size={14} className="text-amber-700" /> Exhibitor Stall Bookings (6 Tiers)
+                    </p>
+                    <span className="text-[10px] text-gray-400 font-medium">Standard 5% default</span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    {[
+                      { id: 'tier-micro',    label: 'Micro Enterprise Booth',       amount: 150000 },
+                      { id: 'tier-small',    label: 'Small Scale Enterprise Booth', amount: 250000 },
+                      { id: 'tier-bronze',   label: 'Bronze Membership Stall',      amount: 375000 },
+                      { id: 'tier-silver',   label: 'Silver Membership Stall',      amount: 500000 },
+                      { id: 'tier-gold',     label: 'Gold Membership Stall',        amount: 750000 },
+                      { id: 'tier-platinum', label: 'Platinum Membership Stall',    amount: 1000000 },
+                    ].map(({ id, label, amount }) => {
+                      const rates = config.packageCommissionRates || {};
+                      const rate = rates[id] ?? 5;
+                      return (
+                        <div key={id} className="flex items-center justify-between gap-2.5 bg-white border border-amber-200/80 rounded-lg p-2.5 shadow-xs hover:border-amber-400 transition-colors">
+                          <div className="min-w-0 flex-1">
+                            <p className="text-xs font-semibold text-gray-900 truncate" title={label}>{label}</p>
+                            <p className="text-[10px] text-gray-500 mt-0.5">
+                              ₦{amount.toLocaleString('en-NG')} <span className="text-amber-700 font-medium">→ ₦{Math.round(amount * rate / 100).toLocaleString('en-NG')} comm.</span>
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-1 shrink-0">
+                            <input
+                              type="number"
+                              min="0"
+                              max="100"
+                              step="0.5"
+                              value={rate}
+                              onChange={(e) => setConfig({
+                                ...config,
+                                packageCommissionRates: { ...(config.packageCommissionRates || {}), [id]: Number(e.target.value) }
+                              })}
+                              className="w-14 px-1.5 py-1 border border-amber-300 rounded-md text-xs font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-amber-500 bg-white text-center"
+                            />
+                            <span className="text-xs text-gray-600 font-bold">%</span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Sponsorship Packages (Spans 1 column, 1x3 column) */}
+                <div className="space-y-3 lg:border-l lg:border-amber-200/80 lg:pl-5">
+                  <div className="flex items-center justify-between">
+                    <p className="text-[11px] font-bold uppercase tracking-wider text-amber-800 flex items-center gap-1.5">
+                      <Award size={14} className="text-amber-700" /> Sponsorship Packages (3 Tiers)
+                    </p>
+                    <span className="text-[10px] text-gray-400 font-medium">Standard 5% default</span>
+                  </div>
+
+                  <div className="space-y-2.5">
+                    {[
+                      { id: 'brand',    label: 'Brand Promotion Partner',     amount: 150000 },
+                      { id: 'gold',     label: 'Gold Summit Sponsor',         amount: 300000 },
+                      { id: 'headline', label: 'Headline Presenting Sponsor', amount: 500000 },
+                    ].map(({ id, label, amount }) => {
+                      const rates = config.packageCommissionRates || {};
+                      const rate = rates[id] ?? 5;
+                      return (
+                        <div key={id} className="flex items-center justify-between gap-2.5 bg-white border border-amber-200/80 rounded-lg p-2.5 shadow-xs hover:border-amber-400 transition-colors">
+                          <div className="min-w-0 flex-1">
+                            <p className="text-xs font-semibold text-gray-900 truncate" title={label}>{label}</p>
+                            <p className="text-[10px] text-gray-500 mt-0.5">
+                              ₦{amount.toLocaleString('en-NG')} <span className="text-amber-700 font-medium">→ ₦{Math.round(amount * rate / 100).toLocaleString('en-NG')} comm.</span>
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-1 shrink-0">
+                            <input
+                              type="number"
+                              min="0"
+                              max="100"
+                              step="0.5"
+                              value={rate}
+                              onChange={(e) => setConfig({
+                                ...config,
+                                packageCommissionRates: { ...(config.packageCommissionRates || {}), [id]: Number(e.target.value) }
+                              })}
+                              className="w-14 px-1.5 py-1 border border-amber-300 rounded-md text-xs font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-amber-500 bg-white text-center"
+                            />
+                            <span className="text-xs text-gray-600 font-bold">%</span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
               </div>
-              <p className="text-[11px] text-gray-500 mt-1">
-                Default: 5% (e.g. ₦37,500 on ₦750,000 Gold booth).
-              </p>
             </div>
           </div>
 

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Shield, TrendingUp, Users, Target, Activity, Calendar } from "lucide-react";
+import { Shield, TrendingUp, Users, Target, Activity, Calendar, UserCheck } from "lucide-react";
 import AdminLayout from "@/components/admin/AdminLayout";
 import { apiGet } from "@/utils/api";
 import { translate } from "@/utils/translate";
@@ -306,7 +306,16 @@ export default function AdminGDIPDashboard() {
                 )}
 
                 {/* Quick Actions */}
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-8">
+                <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4 mb-8">
+                    <button
+                        onClick={() => router.push("/admin/gdip/partners")}
+                        className="flex items-center justify-center gap-3 bg-indigo-600 border border-indigo-700 text-white px-6 py-4 rounded-xl hover:bg-indigo-700 transition-all shadow-sm group"
+                    >
+                        <div className="p-2 bg-indigo-500 rounded-lg group-hover:bg-indigo-400 transition-colors">
+                            <UserCheck className="w-5 h-5 text-white" />
+                        </div>
+                        <span className="font-medium text-sm sm:text-base">Partners</span>
+                    </button>
                     <button
                         onClick={() => router.push("/admin/gdip/cycles/create")}
                         className="flex items-center justify-center gap-3 bg-white border border-gray-200 text-gray-700 px-6 py-4 rounded-xl hover:bg-gray-50 hover:border-gray-300 transition-all shadow-sm group"
@@ -336,7 +345,7 @@ export default function AdminGDIPDashboard() {
                     </button>
                     <button
                         onClick={() => router.push("/admin/gdip/commodities")}
-                        className="flex items-center justify-center gap-3 bg-white border border-gray-200 text-gray-700 px-6 py-4 rounded-xl hover:bg-gray-50 hover:border-gray-300 transition-all shadow-sm group md:col-span-3 lg:col-span-1"
+                        className="flex items-center justify-center gap-3 bg-white border border-gray-200 text-gray-700 px-6 py-4 rounded-xl hover:bg-gray-50 hover:border-gray-300 transition-all shadow-sm group col-span-2 lg:col-span-1"
                     >
                         <div className="p-2 bg-yellow-100 rounded-lg group-hover:bg-yellow-200 transition-colors">
                             <Shield className="w-5 h-5 text-yellow-600" />

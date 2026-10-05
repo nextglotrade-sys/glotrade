@@ -152,6 +152,19 @@ export class BazaarController {
           config.promoterCommissionPercent = pVal;
         }
       }
+      // Per-package commission rates map
+      if (req.body.packageCommissionRates && typeof req.body.packageCommissionRates === 'object') {
+        const incoming = req.body.packageCommissionRates as Record<string, number>;
+        const existing = (config.packageCommissionRates as any) || {};
+        const merged = { ...Object.fromEntries(Object.entries(existing)), ...incoming };
+        // Validate all values are valid percentages
+        const validated: Record<string, number> = {};
+        for (const [pkgId, rate] of Object.entries(merged)) {
+          const n = Number(rate);
+          if (!isNaN(n) && n >= 0 && n <= 100) validated[pkgId] = n;
+        }
+        config.packageCommissionRates = validated as any;
+      }
 
       if (inactiveMessage !== undefined) config.inactiveMessage = inactiveMessage;
       if (eventTitle !== undefined) config.eventTitle = eventTitle;
@@ -250,7 +263,11 @@ export class BazaarController {
           if (promoter) {
             promoterId = promoter._id;
             promoterCodeClean = promoter.promoterCode;
-            promoterCommissionPercent = Number(config.promoterCommissionPercent) || 5;
+            // Look up per-package rate by packageId, fall back to global
+            const globalRate = Number(config.promoterCommissionPercent) || 5;
+            const pkgRates = config.packageCommissionRates as any;
+            const pkgRate = pkgRates instanceof Map ? pkgRates.get(packageId) : (pkgRates ? pkgRates[packageId as string] : undefined);
+            promoterCommissionPercent = (pkgRate !== undefined && pkgRate !== null) ? Number(pkgRate) : globalRate;
             promoterCommissionAmount = Math.round((Number(amount) * promoterCommissionPercent) / 100);
             promoterCommissionStatus = "pending";
 
@@ -743,7 +760,11 @@ export class BazaarController {
             const config = await getOrCreateConfig();
             promoterId = promoter._id;
             promoterCodeClean = promoter.promoterCode;
-            promoterCommissionPercent = Number(config.promoterCommissionPercent) || 5;
+            // Look up per-package rate by packageId, fall back to global
+            const globalRate = Number(config.promoterCommissionPercent) || 5;
+            const pkgRates = config.packageCommissionRates as any;
+            const pkgRate = pkgRates instanceof Map ? pkgRates.get(packageId) : (pkgRates ? pkgRates[packageId as string] : undefined);
+            promoterCommissionPercent = (pkgRate !== undefined && pkgRate !== null) ? Number(pkgRate) : globalRate;
             promoterCommissionAmount = Math.round((Number(amount) * promoterCommissionPercent) / 100);
             promoterCommissionStatus = "pending";
 

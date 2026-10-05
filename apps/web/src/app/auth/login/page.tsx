@@ -63,7 +63,7 @@ function LoginForm() {
         return;
       }
       if (json.data.role === 'bazaar_manager') {
-        router.replace('/admin/bazaar');
+        router.replace('/admin/trade-fair');
         return;
       }
 

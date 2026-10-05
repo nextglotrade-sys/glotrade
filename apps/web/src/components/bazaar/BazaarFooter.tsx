@@ -63,7 +63,7 @@ export default function BazaarFooter() {
               <li>
                 <Link href="/trade-fair/promoter" className="text-amber-400 font-semibold hover:text-amber-300 transition-colors flex items-center gap-1.5">
                   <Sparkles size={14} className="text-amber-400" />
-                  <span>Promoter Program (Earn 5%)</span>
+                  <span>Promoter Referral Program</span>
                 </Link>
               </li>
               <li>

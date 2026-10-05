@@ -37,7 +37,7 @@ const managerRoleLabels: Record<string, string> = {
   product_manager: "Product Manager",
   order_manager: "Order Manager",
   insured_partners_manager: "Insured Partners Manager",
-  bazaar_manager: "Event & Trade Fair Manager",
+  bazaar_manager: "Trade Fair Manager",
 };
 
 const isManagerRole = (role?: string) => Boolean(role && managerWorkspaceByRole[role]);

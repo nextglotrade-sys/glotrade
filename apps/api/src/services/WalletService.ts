@@ -2782,6 +2782,7 @@ export class WalletService extends BaseService<IWallet> {
       await wallet.save();
 
       // Create transaction record
+      const reference = `ADMIN_ADJ_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
       const transaction = await WalletTransaction.create({
         walletId: wallet._id,
         userId: wallet.userId,
@@ -2792,13 +2793,14 @@ export class WalletService extends BaseService<IWallet> {
         balanceBefore,
         balanceAfter,
         status: 'completed',
-        reference: `ADMIN_ADJ_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+        reference,
         description: `Admin balance adjustment: ${reason}`,
         processedAt: new Date(),
         metadata: {
           adminId,
           reason,
-          adjustmentType: amount > 0 ? 'credit' : 'debit'
+          adjustmentType: amount > 0 ? 'credit' : 'debit',
+          idempotencyKey: reference
         }
       });
 

@@ -37,8 +37,108 @@ export class GDIPController {
             });
         } catch (error: any) {
             console.error("Error purchasing TPIA:", error);
+            const msg = error.message || "Failed to purchase TPIA";
+            if (msg.includes("KYC verification required")) {
+                return res.status(403).json({
+                    success: false,
+                    error: msg,
+                    code: "KYC_REQUIRED",
+                    requiresKYC: true
+                });
+            }
+            if (msg.includes("Insufficient wallet balance")) {
+                return res.status(400).json({
+                    success: false,
+                    error: msg,
+                    code: "INSUFFICIENT_BALANCE"
+                });
+            }
+            if (msg.includes("Account is suspended")) {
+                return res.status(403).json({
+                    success: false,
+                    error: msg,
+                    code: "ACCOUNT_SUSPENDED"
+                });
+            }
+            res.status(400).json({
+                success: false,
+                error: msg
+            });
+        }
+    }
+
+    /**
+     * ADMIN: Get all partners (TPIA holders & prospective partners)
+     * GET /api/gdip/admin/partners
+     */
+    static async getAllPartners(req: AuthRequest, res: Response) {
+        try {
+            const query = String(req.query.query || "").trim();
+            const partners = await GDIPService.getAllPartners(query || undefined);
+
+            res.json({
+                success: true,
+                count: partners.length,
+                data: partners
+            });
+        } catch (error: any) {
+            console.error("Error fetching GDIP partners:", error);
             res.status(500).json({
-                error: error.message || "Failed to purchase TPIA"
+                error: error.message || "Failed to fetch partners"
+            });
+        }
+    }
+
+    /**
+     * ADMIN: Verify an Insured Partner (approve KYC)
+     * POST /api/gdip/admin/partners/:partnerId/verify
+     */
+    static async verifyPartner(req: AuthRequest, res: Response) {
+        try {
+            const { partnerId } = req.params;
+            const managerId = (req.user as any)?._id || (req.user as any)?.id;
+
+            if (!partnerId) {
+                return res.status(400).json({ error: "Partner ID is required" });
+            }
+
+            const updated = await GDIPService.verifyPartner(partnerId, managerId);
+            res.json({
+                success: true,
+                message: "Insured Partner verified successfully. Self-service TPIA purchases unlocked.",
+                data: updated
+            });
+        } catch (error: any) {
+            console.error("Error verifying partner:", error);
+            res.status(500).json({
+                error: error.message || "Failed to verify partner"
+            });
+        }
+    }
+
+    /**
+     * ADMIN: Toggle suspension status of an Insured Partner
+     * POST /api/gdip/admin/partners/:partnerId/toggle-block
+     */
+    static async togglePartnerBlock(req: AuthRequest, res: Response) {
+        try {
+            const { partnerId } = req.params;
+            const managerId = (req.user as any)?._id || (req.user as any)?.id;
+
+            if (!partnerId) {
+                return res.status(400).json({ error: "Partner ID is required" });
+            }
+
+            const updated = await GDIPService.togglePartnerBlock(partnerId, managerId);
+            res.json({
+                success: true,
+                message: updated.isBlocked ? "Partner account suspended" : "Partner account reactivated",
+                data: updated
+            });
+        } catch (error: any) {
+            console.error("Error toggling partner status:", error);
+            res.status(500).json({
+                error: error.message || "Failed to update partner status"
             });
         }
     }
@@ -73,7 +173,7 @@ export class GDIPController {
                     { "businessInfo.companyName": searchRegex }
                 ]
             })
-                .select("_id username firstName lastName email phone role isBlocked kycStatus businessInfo.companyName")
+                .select("_id username firstName lastName email phone role isBlocked kycStatus isVerified businessInfo.companyName")
                 .limit(limit)
                 .lean();
 
@@ -87,7 +187,8 @@ export class GDIPController {
                     phone: user.phone,
                     role: user.role,
                     isBlocked: user.isBlocked,
-                    kycStatus: user.kycStatus
+                    isVerified: Boolean(user.isVerified || user.kycStatus === "verified"),
+                    kycStatus: user.kycStatus || (user.isVerified ? "verified" : "unverified")
                 }))
             });
         } catch (error: any) {

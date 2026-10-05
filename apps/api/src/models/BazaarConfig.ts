@@ -15,7 +15,8 @@ export interface IBazaarConfig extends Document {
   bankAccountName?: string;
   bankAccountNumber?: string;
   promoterProgramActive?: boolean;
-  promoterCommissionPercent?: number;
+  promoterCommissionPercent?: number; // legacy global fallback
+  packageCommissionRates?: Record<string, number>; // per-package rates, keyed by packageId
   updatedAt: Date;
   updatedBy?: string;
 }
@@ -27,7 +28,22 @@ const BazaarConfigSchema: Schema = new Schema(
     exhibitorApplicationsActive: { type: Boolean, default: true },
     sponsorshipActive: { type: Boolean, default: true },
     promoterProgramActive: { type: Boolean, default: true },
-    promoterCommissionPercent: { type: Number, default: 5 },
+    promoterCommissionPercent: { type: Number, default: 5 }, // legacy global fallback
+    packageCommissionRates: {
+      type: Map,
+      of: Number,
+      default: () => new Map([
+        ['tier-micro', 5],
+        ['tier-small', 5],
+        ['tier-bronze', 5],
+        ['tier-silver', 5],
+        ['tier-gold', 5],
+        ['tier-platinum', 5],
+        ['brand', 5],
+        ['gold', 5],
+        ['headline', 5],
+      ]),
+    },
     inactiveMessage: {
       type: String,
       default:

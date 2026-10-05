@@ -28,8 +28,8 @@ const roleOptions: Array<{ value: ManagerRole; label: string; description: strin
   },
   {
     value: 'bazaar_manager',
-    label: 'Event Bazaar Manager',
-    description: 'Can access GloTrade Bazaar event management and attendee verification features.',
+    label: 'Trade Fair Manager',
+    description: 'Can access the GloTrade International Trade Fair portal, stall bookings, promoter commissions and payout management.',
   },
 ];
 
@@ -39,6 +39,7 @@ export default function CreateManagerAccountPage() {
   const [error, setError] = useState('');
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [createdEmail, setCreatedEmail] = useState('');
+  const [wasPromoted, setWasPromoted] = useState(false);
   const [selectedRoles, setSelectedRoles] = useState<ManagerRole[]>(['product_manager']);
   const [formData, setFormData] = useState({
     email: '',
@@ -81,8 +82,9 @@ export default function CreateManagerAccountPage() {
         role: selectedRoles[0],
         assignedRoles: selectedRoles,
       };
-      await apiPost('/api/v1/admin/managers', payload);
+      const res = await apiPost<{ data: { promoted?: boolean } }>('/api/v1/admin/managers', payload);
       setCreatedEmail(formData.email);
+      setWasPromoted(res?.data?.promoted === true);
       setShowSuccessModal(true);
     } catch (err: any) {
       setError(err.message || 'An error occurred');
@@ -114,9 +116,12 @@ export default function CreateManagerAccountPage() {
           <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-1.5 flex items-center gap-2">
             <UserPlus className="text-blue-600" size={24} /> Create Manager Account
           </h1>
-          <p className="text-xs sm:text-sm text-gray-500 mb-6 leading-relaxed">
+          <p className="text-xs sm:text-sm text-gray-500 mb-4 leading-relaxed">
             Create a manager account and assign one or multiple management roles. Login credentials will be sent via email.
           </p>
+          <div className="bg-amber-50 border border-amber-200 rounded-xl px-3.5 py-3 text-xs sm:text-sm text-amber-800 mb-6 leading-relaxed">
+            <strong>💡 Tip:</strong> If the person already has an account on GloTrade (e.g. a buyer or seller), simply enter their registered email below — their account will be <strong>promoted</strong> to a manager role. Their existing login and password will remain unchanged.
+          </div>
 
           {error && (
             <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-xl text-xs sm:text-sm mb-6">
@@ -251,7 +256,11 @@ export default function CreateManagerAccountPage() {
         <Modal
           open={showSuccessModal}
           onClose={() => setShowSuccessModal(false)}
-          title={<span className="inline-flex items-center gap-2 text-emerald-600 font-bold">Manager Account Created</span>}
+          title={
+            <span className="inline-flex items-center gap-2 font-bold" style={{ color: wasPromoted ? '#059669' : '#059669' }}>
+              {wasPromoted ? '⬆️ User Promoted to Manager' : 'Manager Account Created'}
+            </span>
+          }
           size="md"
           footer={(
             <div className="flex gap-2 w-full">
@@ -259,10 +268,11 @@ export default function CreateManagerAccountPage() {
                 onClick={() => {
                   setShowSuccessModal(false);
                   setFormData({ email: '', firstName: '', lastName: '', phone: '' });
+                  setWasPromoted(false);
                 }}
                 className="flex-1 px-4 py-2.5 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 text-xs font-bold transition-colors"
               >
-                Create Another
+                {wasPromoted ? 'Promote Another' : 'Create Another'}
               </button>
               <button
                 onClick={() => router.push('/admin/managers')}
@@ -274,12 +284,18 @@ export default function CreateManagerAccountPage() {
           )}
         >
           <div className="space-y-4 p-2">
-            <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4">
-              <p className="text-xs sm:text-sm font-bold text-emerald-900">
-                Manager account created successfully for <span className="break-all">{createdEmail}</span> with {selectedRoles.length} assigned role(s).
+            <div className={`rounded-xl border p-4 ${wasPromoted ? 'border-blue-200 bg-blue-50' : 'border-emerald-200 bg-emerald-50'}`}>
+              <p className={`text-xs sm:text-sm font-bold ${wasPromoted ? 'text-blue-900' : 'text-emerald-900'}`}>
+                {wasPromoted
+                  ? <><span className="break-all">{createdEmail}</span> has been promoted to manager with {selectedRoles.length} assigned role(s).</>
+                  : <>Manager account created for <span className="break-all">{createdEmail}</span> with {selectedRoles.length} assigned role(s).</>
+                }
               </p>
-              <p className="mt-1 text-xs text-emerald-700">
-                Login credentials have been sent by email and the account will have access to all assigned workspaces in the sidebar menu.
+              <p className={`mt-1 text-xs ${wasPromoted ? 'text-blue-700' : 'text-emerald-700'}`}>
+                {wasPromoted
+                  ? 'Their existing login credentials remain unchanged. They have been notified by email about their new manager access and workspaces.'
+                  : 'Login credentials have been sent by email and the account will have access to all assigned workspaces in the sidebar menu.'
+                }
               </p>
             </div>
           </div>

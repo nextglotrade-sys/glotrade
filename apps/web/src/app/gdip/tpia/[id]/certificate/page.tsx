@@ -134,6 +134,9 @@ export default function InsuranceCertificatePage() {
         ? translate("gdip.certificate.content.backingValue")
         : translate("gdip.certificate.content.pendingBackingValue");
 
+    const insuranceStatus = insurance.status;
+    const isInsuranceActive = insuranceStatus === "active";
+
     return (
         <div className="min-h-screen bg-white">
             {/* Action Bar - Hidden during print */}
@@ -153,6 +156,45 @@ export default function InsuranceCertificatePage() {
                     {translate("gdip.certificate.printButton")}
                 </button>
             </div>
+
+            {/* Insurance Status Banner - shown when not active */}
+            {!isInsuranceActive && (
+                <div className={`max-w-4xl mx-auto px-4 mb-4 print:hidden`}>
+                    <div className={`rounded-2xl p-4 flex items-start gap-3 border ${
+                        insuranceStatus === "pending"
+                            ? "bg-amber-50 border-amber-200"
+                            : insuranceStatus === "expired"
+                            ? "bg-gray-100 border-gray-300"
+                            : "bg-red-50 border-red-200"
+                    }`}>
+                        <ShieldCheck className={`w-5 h-5 flex-shrink-0 mt-0.5 ${
+                            insuranceStatus === "pending" ? "text-amber-500"
+                            : insuranceStatus === "expired" ? "text-gray-500"
+                            : "text-red-500"
+                        }`} />
+                        <div>
+                            <p className={`text-sm font-black uppercase tracking-wide ${
+                                insuranceStatus === "pending" ? "text-amber-800"
+                                : insuranceStatus === "expired" ? "text-gray-700"
+                                : "text-red-800"
+                            }`}>
+                                Insurance Status: {insuranceStatus}
+                            </p>
+                            <p className={`text-xs font-medium mt-0.5 ${
+                                insuranceStatus === "pending" ? "text-amber-700"
+                                : insuranceStatus === "expired" ? "text-gray-600"
+                                : "text-red-700"
+                            }`}>
+                                {insuranceStatus === "pending"
+                                    ? "Your insurance is being processed. This certificate will be fully active once confirmed by the underwriter."
+                                    : insuranceStatus === "expired"
+                                    ? "This insurance coverage has expired. Contact support for renewal."
+                                    : "This insurance certificate has been cancelled or a claim has been filed. Contact support for assistance."}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Certificate Container */}
             <div className="max-w-4xl mx-auto bg-white shadow-2xl overflow-hidden relative print:shadow-none print:max-w-none mb-12 border border-gray-100 sm:rounded-3xl">

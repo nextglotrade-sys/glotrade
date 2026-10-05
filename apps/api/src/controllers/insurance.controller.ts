@@ -33,22 +33,28 @@ export const getInsuranceCertificate = async (req: AuthRequest, res: Response) =
             return res.status(404).json({ error: "Insurance certificate not found" });
         }
 
-        // Return certificate data (can be used to generate PDF)
+        // Return nested shape matching the certificate UI
         const certificateData = {
-            certificateNumber: insurance.certificateNumber,
-            tpiaId: tpia.tpiaId,
-            tpiaNumber: tpia.tpiaNumber,
-            partnerName: tpia.partnerName,
-            partnerEmail: tpia.partnerEmail,
-            provider: insurance.provider,
-            coverageAmount: insurance.coverageAmount,
-            effectiveDate: insurance.effectiveDate,
-            expiryDate: insurance.expiryDate,
-            status: insurance.status,
-            commodityType: tpia.commodityType,
-            commodityQuantity: tpia.commodityQuantity,
-            warehouseLocation: insurance.warehouseLocation,
-            issuedDate: insurance.createdAt,
+            tpia: {
+                tpiaId: tpia.tpiaId,
+                tpiaNumber: tpia.tpiaNumber,
+                partnerName: tpia.partnerName,
+                partnerEmail: tpia.partnerEmail,
+                purchasePrice: tpia.purchasePrice,
+                commodityType: tpia.commodityType,
+                commodityQuantity: tpia.commodityQuantity,
+                commodityUnit: (tpia as any).commodityUnit,
+                purchasedAt: tpia.createdAt,
+            },
+            insurance: {
+                certificateNumber: insurance.certificateNumber,
+                provider: insurance.provider,
+                coverageAmount: insurance.coverageAmount,
+                status: insurance.status,
+                effectiveDate: insurance.effectiveDate,
+                expiryDate: insurance.expiryDate,
+                warehouseLocation: insurance.warehouseLocation,
+            },
         };
 
         res.json({
@@ -86,13 +92,14 @@ export const fileInsuranceClaim = async (req: AuthRequest, res: Response) => {
         }
 
         // Add claim to insurance record
+        // NOTE: schema requires `claimReason` (not `description`)
         const claim = {
             claimNumber: `CLM-${Date.now()}`,
             claimType,
             claimAmount,
             claimDate: new Date(),
-            description,
-            status: "pending",
+            claimReason: description,   // maps request `description` → schema `claimReason`
+            claimStatus: "pending",
             documents: documents || [],
             filedBy: req.user?._id,
         };

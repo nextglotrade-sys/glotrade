@@ -21,7 +21,7 @@ const ROLE_LABELS: Record<ManagerRole, string> = {
     product_manager: 'Product Manager',
     order_manager: 'Order Manager',
     insured_partners_manager: 'Insured Partners Manager',
-    bazaar_manager: 'Event Bazaar Manager',
+    bazaar_manager: 'Trade Fair Manager',
 };
 
 const ROLE_CAPABILITIES: Record<ManagerRole, string[]> = {
@@ -47,10 +47,11 @@ const ROLE_CAPABILITIES: Record<ManagerRole, string[]> = {
         'Review insurance claims and commodity prices',
     ],
     bazaar_manager: [
-        'Manage GloTrade Bazaar event configurations',
-        'Review ticket bookings, stall applications & sponsorship entries',
-        'Verify ticket QR codes and check-in attendees at the venue',
-        'Access Bazaar management & reporting dashboard',
+        'Manage GloTrade International Trade Fair 2026 configurations',
+        'Review stall bookings, ticket sales & sponsorship entries',
+        'Process promoter commissions and record payout receipts',
+        'Suspend, approve, or reject stall booking applications',
+        'Access Trade Fair management & reporting dashboard',
     ],
 };
 
@@ -58,7 +59,7 @@ const ROLE_WORKSPACE_PATHS: Record<ManagerRole, string> = {
     product_manager: '/admin/products',
     order_manager: '/admin/orders',
     insured_partners_manager: '/admin/gdip',
-    bazaar_manager: '/admin/bazaar',
+    bazaar_manager: '/admin/trade-fair',
 };
 
 export class ManagerAccountService {
@@ -256,18 +257,63 @@ export class ManagerAccountService {
 
     async createManager(data: CreateManagerAccountData) {
         const normalizedEmail = data.email.trim().toLowerCase();
-        const existingUser = await User.findOne({
-            email: normalizedEmail,
-        }).setOptions({ includeDeleted: true });
+        const existingUser = await User.findOne({ email: normalizedEmail })
+            .setOptions({ includeDeleted: false });
+
+        const assignedRoles = data.assignedRoles && data.assignedRoles.length > 0
+            ? data.assignedRoles
+            : [data.role];
+
+        // ── PROMOTE EXISTING USER ────────────────────────────────────────────
         if (existingUser) {
-            throw new Error('A user with this email already exists. Please use a different email address.');
+            const currentRole = existingUser.role as string;
+
+            // Block promoting admins or super admins
+            if (currentRole === 'admin' || existingUser.isSuperAdmin) {
+                throw new Error('This account is an administrator and cannot be assigned a manager role.');
+            }
+
+            // Block promoting someone who is already a manager (use Edit Roles instead)
+            if (MANAGER_ROLES.includes(currentRole as ManagerRole)) {
+                throw new Error(
+                    `This user is already a manager (${ROLE_LABELS[currentRole as ManagerRole] || currentRole}). ` +
+                    `Use "Edit Roles" on the Manager Accounts page to update their roles.`
+                );
+            }
+
+            // Promote the existing buyer/seller to manager
+            existingUser.role = data.role as any;
+            existingUser.assignedRoles = assignedRoles as any;
+            if (data.firstName && !existingUser.firstName) existingUser.firstName = data.firstName;
+            if (data.lastName && !existingUser.lastName) existingUser.lastName = data.lastName;
+            if (data.phone && !existingUser.phone) existingUser.phone = data.phone;
+            await existingUser.save();
+
+            // Notify the user about their new role access
+            try {
+                await this.sendRoleUpdateEmail({
+                    email: normalizedEmail,
+                    firstName: existingUser.firstName || data.firstName,
+                    assignedRoles,
+                });
+            } catch (err) {
+                console.error('[ManagerAccountService] Failed to send promotion email:', err);
+            }
+
+            return {
+                userId: existingUser._id,
+                email: existingUser.email,
+                username: existingUser.username,
+                role: existingUser.role,
+                assignedRoles: existingUser.assignedRoles,
+                promoted: true, // flag so the frontend can show a different message
+            };
         }
 
+        // ── CREATE NEW MANAGER ACCOUNT ────────────────────────────────────────
         const temporaryPassword = generateSecurePassword(12);
         const username = await this.generateUniqueUsername(data.email);
         const passwordHash = await bcrypt.hash(temporaryPassword, 10);
-
-        const assignedRoles = data.assignedRoles && data.assignedRoles.length > 0 ? data.assignedRoles : [data.role];
 
         let manager;
         try {
@@ -306,6 +352,7 @@ export class ManagerAccountService {
             username: manager.username,
             role: manager.role,
             assignedRoles: manager.assignedRoles,
+            promoted: false,
         };
     }
 

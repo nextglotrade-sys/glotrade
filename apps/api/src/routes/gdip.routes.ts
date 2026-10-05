@@ -66,6 +66,27 @@ router.get("/forming-gdc", requireAuth, GDIPController.getFormingGDC);
 // ==================== ADMIN ROUTES ====================
 
 /**
+ * @route   GET /api/gdip/admin/partners
+ * @desc    Get all Insured Partners (TPIA holders & prospective partners)
+ * @access  Private (Admin or Insured Partners Manager)
+ */
+router.get("/admin/partners", requireAuth, requireInsuredPartnersManager, GDIPController.getAllPartners);
+
+/**
+ * @route   POST /api/gdip/admin/partners/:partnerId/verify
+ * @desc    Verify an Insured Partner (approve KYC)
+ * @access  Private (Admin or Insured Partners Manager)
+ */
+router.post("/admin/partners/:partnerId/verify", requireAuth, requireInsuredPartnersManager, GDIPController.verifyPartner);
+
+/**
+ * @route   POST /api/gdip/admin/partners/:partnerId/toggle-block
+ * @desc    Toggle suspension status of an Insured Partner
+ * @access  Private (Admin or Insured Partners Manager)
+ */
+router.post("/admin/partners/:partnerId/toggle-block", requireAuth, requireInsuredPartnersManager, GDIPController.togglePartnerBlock);
+
+/**
  * @route   GET /api/gdip/admin/partners/search
  * @desc    Search partners for assisted/manual TPIA purchases
  * @access  Private (Admin or Insured Partners Manager)

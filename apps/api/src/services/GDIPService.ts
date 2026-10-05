@@ -200,7 +200,26 @@ export class GDIPService {
                 // Save GDC state first to ensure checking logic in createTradeCycle passes
                 await gdc.save();
 
-                if (gdc.currentFill === 10) {
+                // Create insurance record with appropriate initial status (active if cluster is full, else pending)
+                const isClusterFull = gdc.currentFill === 10;
+                await Insurance.create({
+                    certificateNumber: tpia.insuranceCertificateNumber,
+                    tpiaId: tpia._id,
+                    tpiaNumber,
+                    provider: "Default Insurance Provider",
+                    policyType: "capital_protection",
+                    coverageAmount: unitPrice,
+                    deductible: 0,
+                    premium: unitPrice * 0.02,
+                    issueDate: new Date(),
+                    effectiveDate: new Date(),
+                    expiryDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
+                    status: isClusterFull ? "active" : "pending",
+                    partnerId,
+                    partnerName: tpia.partnerName
+                });
+
+                if (isClusterFull) {
                     // Auto-activate all TPIAs in this GDC
                     await TPIA.updateMany(
                         { gdcId: gdc._id },
@@ -229,24 +248,6 @@ export class GDIPService {
                         new Date() // Start immediately
                     );
                 }
-
-                // Create insurance record
-                await Insurance.create({
-                    certificateNumber: tpia.insuranceCertificateNumber,
-                    tpiaId: tpia._id,
-                    tpiaNumber,
-                    provider: "Default Insurance Provider",
-                    policyType: "capital_protection",
-                    coverageAmount: unitPrice,
-                    deductible: 0,
-                    premium: unitPrice * 0.02,
-                    issueDate: new Date(),
-                    effectiveDate: new Date(),
-                    expiryDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
-                    status: "pending",
-                    partnerId,
-                    partnerName: tpia.partnerName
-                });
 
                 purchasedTPIAs.push(tpia);
             }
@@ -784,9 +785,178 @@ export class GDIPService {
             gdcs: [...new Set(tpias.map(t => t.gdcNumber))].length
         };
 
+        const partnerUser = await User.findById(partnerId).select("email firstName lastName username isVerified kycStatus isBlocked businessInfo").lean() as any;
+
         return {
+            partner: partnerUser ? {
+                _id: partnerUser._id,
+                email: partnerUser.email,
+                name: partnerUser.businessInfo?.companyName || `${partnerUser.firstName || ''} ${partnerUser.lastName || ''}`.trim() || partnerUser.username,
+                isVerified: Boolean(partnerUser.isVerified || partnerUser.kycStatus === 'verified'),
+                kycStatus: partnerUser.kycStatus || (partnerUser.isVerified ? 'verified' : 'unverified'),
+                isBlocked: Boolean(partnerUser.isBlocked),
+                companyName: partnerUser.businessInfo?.companyName,
+                businessType: partnerUser.businessInfo?.businessType || 'Wholesaler'
+            } : null,
             summary,
             tpias: tpiasWithEstimates
+        };
+    }
+
+    /**
+     * ADMIN: Fetch all partners (active TPIA holders and prospective partners)
+     */
+    static async getAllPartners(searchTerm?: string): Promise<any[]> {
+        const tpias = await TPIA.find({ status: { $ne: "voided" } }).select("partnerId purchasePrice totalProfitEarned purchasedAt").lean();
+        const partnerTPIAMap = new Map<string, { totalTPIAs: number; totalInvested: number; totalProfit: number; earliestJoined?: Date }>();
+
+        for (const tpia of tpias) {
+            const pId = tpia.partnerId?.toString();
+            if (!pId) continue;
+            if (!partnerTPIAMap.has(pId)) {
+                partnerTPIAMap.set(pId, {
+                    totalTPIAs: 0,
+                    totalInvested: 0,
+                    totalProfit: 0,
+                    earliestJoined: tpia.purchasedAt
+                });
+            }
+            const record = partnerTPIAMap.get(pId)!;
+            record.totalTPIAs += 1;
+            record.totalInvested += tpia.purchasePrice || 0;
+            record.totalProfit += tpia.totalProfitEarned || 0;
+            if (tpia.purchasedAt && (!record.earliestJoined || tpia.purchasedAt < record.earliestJoined)) {
+                record.earliestJoined = tpia.purchasedAt;
+            }
+        }
+
+        const tpiaPartnerIds = Array.from(partnerTPIAMap.keys());
+
+        let userQuery: any = {
+            isDeleted: { $ne: true },
+            $or: [
+                { _id: { $in: tpiaPartnerIds } },
+                { "businessInfo.businessType": { $in: ["Distributor", "Wholesaler", "Sales Agent"] } },
+                { role: { $in: ["buyer", "seller"] } }
+            ]
+        };
+
+        if (searchTerm && searchTerm.trim().length > 0) {
+            const escaped = searchTerm.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+            const searchRegex = new RegExp(escaped, "i");
+            userQuery = {
+                $and: [
+                    userQuery,
+                    {
+                        $or: [
+                            { email: searchRegex },
+                            { username: searchRegex },
+                            { firstName: searchRegex },
+                            { lastName: searchRegex },
+                            { "businessInfo.companyName": searchRegex }
+                        ]
+                    }
+                ]
+            };
+        }
+
+        const users = await User.find(userQuery)
+            .select("_id email username firstName lastName phone role isVerified kycStatus isBlocked createdAt businessInfo")
+            .sort({ isVerified: 1, createdAt: -1 })
+            .limit(100)
+            .lean();
+
+        const userIds = users.map(u => u._id);
+        const wallets = await Wallet.find({ userId: { $in: userIds } }).select("userId balance").lean();
+        const walletMap = new Map(wallets.map(w => [w.userId?.toString(), w.balance || 0]));
+
+        return users.map((u: any) => {
+            const pStats = partnerTPIAMap.get(u._id.toString()) || {
+                totalTPIAs: 0,
+                totalInvested: 0,
+                totalProfit: 0,
+                earliestJoined: u.createdAt
+            };
+
+            const isVerified = Boolean(u.isVerified || u.kycStatus === "verified");
+
+            return {
+                _id: u._id,
+                userId: u._id,
+                name: u.businessInfo?.companyName || `${u.firstName || ""} ${u.lastName || ""}`.trim() || u.username,
+                email: u.email,
+                phone: u.phone,
+                role: u.role,
+                businessType: u.businessInfo?.businessType || "Distributor",
+                isVerified,
+                kycVerified: isVerified,
+                kycStatus: u.kycStatus || (isVerified ? "verified" : "unverified"),
+                isBlocked: Boolean(u.isBlocked),
+                accountStatus: u.isBlocked ? "suspended" : "active",
+                totalTPIAs: pStats.totalTPIAs,
+                totalInvested: pStats.totalInvested,
+                totalProfit: pStats.totalProfit,
+                walletBalance: walletMap.get(u._id.toString()) || 0,
+                joinedDate: pStats.earliestJoined || u.createdAt
+            };
+        });
+    }
+
+    /**
+     * ADMIN: Verify an Insured Partner (approve KYC for self-service TPIA purchases)
+     */
+    static async verifyPartner(partnerId: string | Schema.Types.ObjectId, managerId: string | Schema.Types.ObjectId): Promise<any> {
+        const exists = await User.exists({ _id: partnerId });
+        if (!exists) {
+            throw new Error("Partner not found");
+        }
+
+        // Use $set with runValidators:false so we only update these specific fields
+        // without triggering validation on unrelated fields (e.g. cart.qty limits).
+        const updated = await User.findByIdAndUpdate(
+            partnerId,
+            {
+                $set: {
+                    isVerified: true,
+                    kycStatus: "verified",
+                    "businessInfo.isVerified": true,
+                    "businessInfo.verifiedAt": new Date(),
+                    "businessInfo.verifiedBy": managerId
+                }
+            },
+            { new: true, runValidators: false }
+        ).select("_id email isVerified kycStatus").lean();
+
+        return {
+            _id: updated?._id,
+            email: updated?.email,
+            isVerified: true,
+            kycStatus: "verified"
+        };
+    }
+
+    /**
+     * ADMIN: Toggle suspension status of an Insured Partner
+     */
+    static async togglePartnerBlock(partnerId: string | Schema.Types.ObjectId, managerId: string | Schema.Types.ObjectId, reason?: string): Promise<any> {
+        const partner = await User.findById(partnerId).select("_id email isBlocked").lean();
+        if (!partner) {
+            throw new Error("Partner not found");
+        }
+
+        const newBlockedState = !partner.isBlocked;
+
+        // Use findByIdAndUpdate to avoid triggering full-document validation
+        await User.findByIdAndUpdate(
+            partnerId,
+            { $set: { isBlocked: newBlockedState } },
+            { runValidators: false }
+        );
+
+        return {
+            _id: partner._id,
+            email: partner.email,
+            isBlocked: newBlockedState
         };
     }
 

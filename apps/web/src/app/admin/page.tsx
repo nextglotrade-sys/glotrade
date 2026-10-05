@@ -101,6 +101,10 @@ export default function AdminDashboardPage() {
             router.push('/admin/gdip');
             return;
           }
+          if (user.role === 'bazaar_manager') {
+            router.push('/admin/trade-fair');
+            return;
+          }
         }
 
         // Fetch recent activity

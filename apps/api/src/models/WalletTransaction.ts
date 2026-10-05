@@ -4,7 +4,7 @@ export interface IWalletTransaction extends Document {
   walletId: Schema.Types.ObjectId;
   userId: Schema.Types.ObjectId;
   type: "deposit" | "withdrawal" | "payment" | "refund" | "transfer" | "earning" | "fee" | "bonus" | "adjustment" | "commission"; // Note: "transfer" deprecated
-  category: "order_payment" | "order_refund" | "top_up" | "withdrawal" | "transfer_in" | "transfer_out" | "sale_earning" | "platform_fee" | "bonus" | "adjustment" | "commission" | "registration_bonus"; // Note: transfer_in/transfer_out deprecated
+  category: "order_payment" | "order_refund" | "top_up" | "withdrawal" | "transfer_in" | "transfer_out" | "sale_earning" | "platform_fee" | "bonus" | "adjustment" | "admin_adjustment" | "commission" | "registration_bonus"; // Note: transfer_in/transfer_out deprecated
   amount: number; // in Naira
   currency: "NGN"; // Naira only
   balanceBefore: number; // in Naira
@@ -62,7 +62,7 @@ const walletTransactionSchema = new Schema<IWalletTransaction>(
     },
     category: {
       type: String,
-      enum: ["order_payment", "order_refund", "top_up", "withdrawal", "transfer_in", "transfer_out", "sale_earning", "platform_fee", "bonus", "adjustment", "commission", "registration_bonus"],
+      enum: ["order_payment", "order_refund", "top_up", "withdrawal", "transfer_in", "transfer_out", "sale_earning", "platform_fee", "bonus", "adjustment", "admin_adjustment", "commission", "registration_bonus"],
       required: true,
       index: true
     },
@@ -139,6 +139,12 @@ walletTransactionSchema.index({ externalReference: 1 });
 walletTransactionSchema.index({ createdAt: -1 });
 // Allow exactly one 'payment' and one 'deposit' per idempotency key
 // This prevents true duplicates while permitting both legs of a transfer
-walletTransactionSchema.index({ "metadata.idempotencyKey": 1, type: 1 }, { unique: true, sparse: true });
+walletTransactionSchema.index(
+  { "metadata.idempotencyKey": 1, type: 1 },
+  {
+    unique: true,
+    partialFilterExpression: { "metadata.idempotencyKey": { $type: "string" } }
+  }
+);
 
 export default mongoose.model<IWalletTransaction>("WalletTransaction", walletTransactionSchema);

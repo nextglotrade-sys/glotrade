@@ -12,7 +12,9 @@ import {
     Hash,
     Award,
     ExternalLink,
-    ArrowLeft
+    ArrowLeft,
+    Clock,
+    XCircle
 } from "lucide-react";
 
 interface VerificationData {
@@ -61,6 +63,59 @@ export default function PublicVerificationPage() {
             setError(err.message || "Invalid certificate number");
         } finally {
             setLoading(false);
+        }
+    };
+
+    const getStatusConfig = (status: string) => {
+        switch (status) {
+            case "active":
+                return {
+                    headerBg: "bg-green-600",
+                    Icon: ShieldCheck,
+                    heading: "Verified Authentic",
+                    subtext: "Official Insurance Document",
+                    pillClass: "bg-green-100 text-green-700",
+                };
+            case "pending":
+                return {
+                    headerBg: "bg-amber-500",
+                    Icon: Clock,
+                    heading: "Certificate Pending",
+                    subtext: "Insurance activation in progress",
+                    pillClass: "bg-amber-100 text-amber-700",
+                };
+            case "expired":
+                return {
+                    headerBg: "bg-gray-500",
+                    Icon: XCircle,
+                    heading: "Certificate Expired",
+                    subtext: "This certificate is no longer valid",
+                    pillClass: "bg-gray-100 text-gray-600",
+                };
+            case "cancelled":
+                return {
+                    headerBg: "bg-red-500",
+                    Icon: XCircle,
+                    heading: "Certificate Cancelled",
+                    subtext: "This certificate has been revoked",
+                    pillClass: "bg-red-100 text-red-700",
+                };
+            case "claimed":
+                return {
+                    headerBg: "bg-blue-600",
+                    Icon: ShieldCheck,
+                    heading: "Claim Filed",
+                    subtext: "A claim has been made on this certificate",
+                    pillClass: "bg-blue-100 text-blue-700",
+                };
+            default:
+                return {
+                    headerBg: "bg-gray-400",
+                    Icon: AlertTriangle,
+                    heading: "Status Unknown",
+                    subtext: "Could not determine certificate status",
+                    pillClass: "bg-gray-100 text-gray-500",
+                };
         }
     };
 
@@ -119,80 +174,93 @@ export default function PublicVerificationPage() {
                             </button>
                         </div>
                     </div>
-                ) : data && (
-                    <div className="bg-white rounded-3xl shadow-2xl overflow-hidden border border-gray-100">
-                        {/* Success Header */}
-                        <div className="bg-green-600 p-8 flex flex-col items-center">
-                            <div className="bg-white/20 p-4 rounded-full mb-4">
-                                <ShieldCheck className="w-16 h-16 text-white" />
+                ) : data && (() => {
+                    const { headerBg, Icon, heading, subtext, pillClass } = getStatusConfig(data.status);
+                    return (
+                        <div className="bg-white rounded-3xl shadow-2xl overflow-hidden border border-gray-100">
+                            {/* Dynamic Status Header */}
+                            <div className={`${headerBg} p-8 flex flex-col items-center`}>
+                                <div className="bg-white/20 p-4 rounded-full mb-4">
+                                    <Icon className="w-16 h-16 text-white" />
+                                </div>
+                                <h2 className="text-2xl font-bold text-white uppercase tracking-wider">{heading}</h2>
+                                <p className="text-white/80 text-sm mt-1">{subtext}</p>
                             </div>
-                            <h2 className="text-2xl font-bold text-white uppercase tracking-wider">Verified Authentic</h2>
-                            <p className="text-green-100 text-sm mt-1">Official Insurance Document</p>
+
+                            {/* Details */}
+                            <div className="p-8 space-y-6">
+                                <div className="grid grid-cols-1 gap-6">
+                                    <div className="flex items-start gap-4">
+                                        <div className="p-2 bg-gray-50 rounded-lg">
+                                            <Hash className="w-5 h-5 text-gray-400" />
+                                        </div>
+                                        <div>
+                                            <p className="text-xs text-gray-400 uppercase font-bold tracking-widest">Certificate No.</p>
+                                            <p className="text-lg font-mono font-bold text-gray-800">{data.certificateNumber}</p>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex items-start gap-4">
+                                        <div className="p-2 bg-gray-50 rounded-lg">
+                                            <User className="w-5 h-5 text-gray-400" />
+                                        </div>
+                                        <div>
+                                            <p className="text-xs text-gray-400 uppercase font-bold tracking-widest">Insured Partner</p>
+                                            <p className="text-lg font-bold text-gray-900">{data.partnerName}</p>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex items-start gap-4">
+                                        <div className="p-2 bg-gray-50 rounded-lg">
+                                            <Award className="w-5 h-5 text-gray-400" />
+                                        </div>
+                                        <div>
+                                            <p className="text-xs text-gray-400 uppercase font-bold tracking-widest">Protected Amount</p>
+                                            <p className="text-lg font-bold text-green-700 font-mono">{formatCurrency(data.coverageAmount)}</p>
+                                        </div>
+                                    </div>
+
+                                    <div className="border-t border-gray-50 pt-6 grid grid-cols-2 gap-4">
+                                        <div>
+                                            <p className="text-[10px] text-gray-400 uppercase font-bold tracking-widest mb-1">Status</p>
+                                            <span className={`${pillClass} px-3 py-1 rounded-full text-xs font-bold uppercase`}>
+                                                {data.status}
+                                            </span>
+                                        </div>
+                                        <div className="text-right">
+                                            <p className="text-[10px] text-gray-400 uppercase font-bold tracking-widest mb-1">Valid Until</p>
+                                            <p className="text-sm font-bold text-gray-800">{formatDate(data.expiryDate)}</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Warning for non-active statuses */}
+                                {data.status !== "active" && (
+                                    <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-start gap-3">
+                                        <AlertTriangle className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
+                                        <p className="text-sm text-amber-800 font-medium">
+                                            This certificate is currently <strong>{data.status}</strong>. Exercise caution before proceeding with transactions based on this document.
+                                        </p>
+                                    </div>
+                                )}
+
+                                {/* Verification Footer */}
+                                <div className="mt-8 pt-8 border-t border-gray-100 text-center">
+                                    <p className="text-[10px] text-gray-400 leading-relaxed mb-6 px-4">
+                                        This verification was processed on {formatDate(data.verifiedAt)}. The information displayed is directly from GloTrade secure records.
+                                    </p>
+                                    <button
+                                        onClick={() => router.push("/")}
+                                        className="inline-flex items-center gap-2 text-blue-600 font-bold text-sm hover:text-blue-700 underline underline-offset-4"
+                                    >
+                                        Visit GloTrade Platform
+                                        <ExternalLink className="w-4 h-4" />
+                                    </button>
+                                </div>
+                            </div>
                         </div>
-
-                        {/* Details */}
-                        <div className="p-8 space-y-6">
-                            <div className="grid grid-cols-1 gap-6">
-                                <div className="flex items-start gap-4">
-                                    <div className="p-2 bg-gray-50 rounded-lg">
-                                        <Hash className="w-5 h-5 text-gray-400" />
-                                    </div>
-                                    <div>
-                                        <p className="text-xs text-gray-400 uppercase font-bold tracking-widest">Certificate No.</p>
-                                        <p className="text-lg font-mono font-bold text-gray-800">{data.certificateNumber}</p>
-                                    </div>
-                                </div>
-
-                                <div className="flex items-start gap-4">
-                                    <div className="p-2 bg-gray-50 rounded-lg">
-                                        <User className="w-5 h-5 text-gray-400" />
-                                    </div>
-                                    <div>
-                                        <p className="text-xs text-gray-400 uppercase font-bold tracking-widest">Insured Partner</p>
-                                        <p className="text-lg font-bold text-gray-900">{data.partnerName}</p>
-                                    </div>
-                                </div>
-
-                                <div className="flex items-start gap-4">
-                                    <div className="p-2 bg-gray-50 rounded-lg">
-                                        <Award className="w-5 h-5 text-gray-400" />
-                                    </div>
-                                    <div>
-                                        <p className="text-xs text-gray-400 uppercase font-bold tracking-widest">Protected Amount</p>
-                                        <p className="text-lg font-bold text-green-700 font-mono">{formatCurrency(data.coverageAmount)}</p>
-                                    </div>
-                                </div>
-
-                                <div className="border-t border-gray-50 pt-6 grid grid-cols-2 gap-4">
-                                    <div>
-                                        <p className="text-[10px] text-gray-400 uppercase font-bold tracking-widest mb-1">Status</p>
-                                        <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-bold uppercase">
-                                            {data.status}
-                                        </span>
-                                    </div>
-                                    <div className="text-right">
-                                        <p className="text-[10px] text-gray-400 uppercase font-bold tracking-widest mb-1">Valid Until</p>
-                                        <p className="text-sm font-bold text-gray-800">{formatDate(data.expiryDate)}</p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Verification Footer */}
-                            <div className="mt-8 pt-8 border-t border-gray-100 text-center">
-                                <p className="text-[10px] text-gray-400 leading-relaxed mb-6 px-4">
-                                    This verification was processed on {formatDate(data.verifiedAt)}. The information displayed is directly from GloTrade secure records.
-                                </p>
-                                <button
-                                    onClick={() => router.push("/")}
-                                    className="inline-flex items-center gap-2 text-blue-600 font-bold text-sm hover:text-blue-700 underline underline-offset-4"
-                                >
-                                    Visit GloTrade Platform
-                                    <ExternalLink className="w-4 h-4" />
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                )}
+                    );
+                })()}
 
                 {/* Secure Notice */}
                 <p className="mt-8 text-center text-xs text-gray-400 flex items-center justify-center gap-1">
