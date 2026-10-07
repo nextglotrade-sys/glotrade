@@ -213,7 +213,7 @@ export default function BazaarNav({
           {/* Brand Logo */}
           <Link href="/trade-fair" className="flex items-center gap-3 group">
             <div className="w-12 h-12 rounded-xl bg-slate-900 border border-amber-500/40 flex items-center justify-center shadow-lg shadow-amber-500/20 group-hover:scale-105 transition-transform overflow-hidden">
-              <img src="/bazaar_logo.jpg" alt="GloTrade International Trade Fair Logo" className="w-full h-full object-cover" />
+              <img src="/glotrade_trade_fair.jpeg" alt="GloTrade International Trade Fair Logo" className="w-full h-full object-cover" />
             </div>
             <div>
               <span className="text-lg sm:text-xl font-extrabold tracking-tight bg-gradient-to-r from-amber-400 via-amber-200 to-amber-400 bg-clip-text text-transparent">

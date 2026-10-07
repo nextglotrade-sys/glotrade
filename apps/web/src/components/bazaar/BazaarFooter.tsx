@@ -12,7 +12,7 @@ export default function BazaarFooter() {
           <div className="space-y-4">
             <Link href="/trade-fair" className="flex items-center gap-3">
               <div className="w-11 h-11 rounded-xl bg-slate-900 border border-amber-500/40 flex items-center justify-center shadow-md overflow-hidden">
-                <img src="/bazaar_logo.jpg" alt="GloTrade International Trade Fair Logo" className="w-full h-full object-cover" />
+                <img src="/glotrade_trade_fair.jpeg" alt="GloTrade International Trade Fair Logo" className="w-full h-full object-cover" />
               </div>
               <div>
                 <span className="text-lg font-bold text-white tracking-tight block">
