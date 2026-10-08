@@ -25,6 +25,10 @@ import {
   Phone,
   Mail,
   Calendar,
+  ZoomIn,
+  X,
+  Eye,
+  ShoppingBag,
 } from "lucide-react";
 import { translate } from "@/utils/translate";
 
@@ -33,6 +37,9 @@ export default function ExhibitorsPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(0);
   const [promoterRef, setPromoterRef] = useState<string | null>(null);
+  const [previewFlyer, setPreviewFlyer] = useState<any | null>(null);
+  const [activeCategory, setActiveCategory] = useState<"all" | "msme" | "corporate" | "sponsor">("all");
+  const [slideIndex, setSlideIndex] = useState(0);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -49,162 +56,233 @@ export default function ExhibitorsPage() {
     }
   }, []);
 
+  // Auto-cycle slideshow through all packages
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setSlideIndex((prev) => (prev + 1) % packages.length);
+    }, 3000);
+    return () => clearInterval(interval);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const packages: (BookingPackage & {
     code: string;
+    category: "msme" | "corporate" | "sponsor";
     dailyRate: number;
+    dailyRateDisplay: string;
     badge: string;
     size: string;
     tag?: string;
+    image: string;
+    imagePng: string;
     borderClass: string;
     badgeClass: string;
     btnClass: string;
     features: string[];
   })[] = [
-      {
-        id: "stall-me",
-        code: "ME",
-        name: "Micro Enterprise (ME)",
-        price: 150000,
-        dailyRate: 30000,
-        type: "exhibitor",
-        badge: "7.5 sqm Pavilion Booth",
-        size: "7.5 sqm",
-        summary: "Ideal entry tier for micro-enterprises, startups, and creative artisans.",
-        borderClass: "border-emerald-500/50 hover:border-emerald-400 shadow-emerald-500/10",
-        badgeClass: "bg-emerald-500/10 text-emerald-400 border-emerald-500/30",
-        btnClass: "bg-emerald-500 hover:bg-emerald-400 text-slate-950",
-        features: [
-          "1 table / 1 chair",
-          "Basic lighting",
-          "7.5 sqm Pavilion booth",
-          "30 seconds Documentary coverage",
-          "Certificate of Participation",
-        ],
-      },
-      {
-        id: "stall-sse",
-        code: "SSE",
-        name: "Small Scale Enterprise (SSE)",
-        price: 250000,
-        dailyRate: 50000,
-        type: "exhibitor",
-        badge: "15 sqm Pavilion Booth",
-        size: "15 sqm",
-        summary: "Designed for small commercial businesses and packaged goods producers.",
-        borderClass: "border-blue-500/50 hover:border-blue-400 shadow-blue-500/10",
-        badgeClass: "bg-blue-500/10 text-blue-400 border-blue-500/30",
-        btnClass: "bg-blue-500 hover:bg-blue-400 text-slate-950",
-        features: [
-          "1 table / 2 chairs",
-          "15 sqm Pavilion booth",
-          "Pavilion Lighting",
-          "Exhibitor participation",
-          "1 minute Documentary coverage",
-          "Certificate of Participation",
-        ],
-      },
-      {
-        id: "stall-bm",
-        code: "BM",
-        name: "Bronze Membership (BM)",
-        price: 375000,
-        dailyRate: 75000,
-        type: "exhibitor",
-        badge: "22.5 sqm (15sqm + 7.5sqm)",
-        size: "22.5 sqm",
-        summary: "Expanded floor area with dedicated business pitch and brand promotion slots.",
-        borderClass: "border-amber-700/60 hover:border-amber-600 shadow-amber-700/10",
-        badgeClass: "bg-amber-700/20 text-amber-300 border-amber-700/40",
-        btnClass: "bg-amber-700 hover:bg-amber-600 text-white",
-        features: [
-          "2 tables / 2 chairs",
-          "15sqm + 7.5 sqm Pavilion booth",
-          "Pavilion Lighting",
-          "Brand/Logo visibility & Ad slots on all materials and website",
-          "2-minute Documentary coverage",
-          "1 Day business pitch",
-          "Certificate of Participation",
-        ],
-      },
-      {
-        id: "stall-sm",
-        code: "SM",
-        name: "Silver Membership (SM)",
-        price: 500000,
-        dailyRate: 100000,
-        type: "exhibitor",
-        badge: "30 sqm Pavilion Booth",
-        size: "30 sqm",
-        tag: "Popular Choice",
-        summary: "Prime mid-size footprint with media magazine feature and 2-day business pitch.",
-        borderClass: "border-slate-300/60 hover:border-slate-200 shadow-slate-300/10",
-        badgeClass: "bg-slate-300/15 text-slate-200 border-slate-300/40",
-        btnClass: "bg-slate-200 hover:bg-white text-slate-950",
-        features: [
-          "2 tables / 4 chairs",
-          "30 sqm Pavilion booth",
-          "Pavilion Lighting",
-          "3-minute Documentary coverage",
-          "Brand/Logo visibility & Ad slots on all materials and website",
-          "Quarter Magazine feature",
-          "2 Days business pitch",
-          "Certificate of Participation",
-        ],
-      },
-      {
-        id: "stall-gm",
-        code: "GM",
-        name: "Gold Membership (GM)",
-        price: 750000,
-        dailyRate: 150000,
-        type: "exhibitor",
-        badge: "60 sqm Pavilion Booth",
-        size: "60 sqm",
-        tag: "Executive Tier",
-        summary: "High-impact 60 sqm presence with half-page feature and product presentation slot.",
-        borderClass: "border-amber-400 hover:border-amber-300 shadow-xl shadow-amber-500/15",
-        badgeClass: "bg-amber-400/20 text-amber-300 border-amber-400/40",
-        btnClass: "bg-amber-400 hover:bg-amber-300 text-slate-950",
-        features: [
-          "2 tables / 4 chairs",
-          "60 sqm Pavilion booth",
-          "Pavilion Lighting",
-          "5-minute Documentary coverage",
-          "3 Days business pitch",
-          "Half-page magazine feature",
-          "Brand/Logo visibility & Ad slots on all materials and website",
-          "Product/business presentation opportunity",
-          "Certificate of Participation",
-        ],
-      },
-      {
-        id: "stall-pm",
-        code: "PM",
-        name: "Platinum Membership (PM)",
-        price: 1000000,
-        dailyRate: 200000,
-        type: "exhibitor",
-        badge: "60 sqm Pavilion Booth (VIP)",
-        size: "60 sqm VIP",
-        tag: "Flagship Corporate",
-        summary: "Supreme executive visibility with full-page magazine feature and 5-day pitch access.",
-        borderClass: "border-purple-400/80 hover:border-purple-300 shadow-2xl shadow-purple-500/20",
-        badgeClass: "bg-purple-500/20 text-purple-300 border-purple-400/40",
-        btnClass: "bg-gradient-to-r from-purple-500 to-amber-400 hover:from-purple-400 hover:to-amber-300 text-slate-950",
-        features: [
-          "3 tables / 4 chairs",
-          "60 sqm Pavilion booth",
-          "Pavilion Lighting",
-          "Full-page magazine feature",
-          "Premium Brand/Logo visibility & Ad slots on all materials and website",
-          "Product/business promotion",
-          "7-minute Documentary coverage",
-          "5 Day business pitch",
-          "Enhanced event visibility",
-          "Certificate of Participation",
-        ],
-      },
-    ];
+    {
+      id: "stall-me",
+      code: "ME",
+      name: "Micro Enterprise (ME)",
+      category: "msme",
+      price: 150000,
+      dailyRate: 30000,
+      dailyRateDisplay: "₦30,000",
+      type: "exhibitor",
+      badge: "10 sqm Pavilion Booth",
+      size: "10 sqm",
+      image: "/trade-fair/IMG_3361.webp",
+      imagePng: "/trade-fair/IMG_3361.PNG",
+      summary: "Ideal entry tier for micro-enterprises, startups, and creative artisans.",
+      borderClass: "border-emerald-500/50 hover:border-emerald-400 shadow-emerald-500/10",
+      badgeClass: "bg-emerald-500/10 text-emerald-400 border-emerald-500/30",
+      btnClass: "bg-emerald-500 hover:bg-emerald-400 text-slate-950",
+      features: [
+        "1 table / 1 chair included",
+        "10 sqm Pavilion booth space",
+        "Pavilion Lighting & Electrical Outlet",
+        "30 seconds documentary coverage",
+        "Certificate of Participation",
+        "Official Trade Directory Listing",
+      ],
+    },
+    {
+      id: "stall-sse",
+      code: "SSE",
+      name: "Small Scale Enterprise (SSE)",
+      category: "msme",
+      price: 250000,
+      dailyRate: 50000,
+      dailyRateDisplay: "₦50,000",
+      type: "exhibitor",
+      badge: "15 sqm Pavilion Booth",
+      size: "15 sqm",
+      image: "/trade-fair/IMG_3358.webp",
+      imagePng: "/trade-fair/IMG_3358.PNG",
+      summary: "Designed for small commercial businesses and packaged goods producers.",
+      borderClass: "border-blue-500/50 hover:border-blue-400 shadow-blue-500/10",
+      badgeClass: "bg-blue-500/10 text-blue-400 border-blue-500/30",
+      btnClass: "bg-blue-500 hover:bg-blue-400 text-slate-950",
+      features: [
+        "1 table / 2 chairs included",
+        "15 sqm Pavilion booth space",
+        "Pavilion Lighting & Standard Electrics",
+        "1 minute documentary coverage",
+        "Exhibitor B2B matchmaking pass",
+        "Certificate of Participation",
+      ],
+    },
+    {
+      id: "stall-bm",
+      code: "BM",
+      name: "Bronze Membership (BM)",
+      category: "msme",
+      price: 375000,
+      dailyRate: 75000,
+      dailyRateDisplay: "₦75,000",
+      type: "exhibitor",
+      badge: "20 sqm Pavilion Booth",
+      size: "20 sqm",
+      image: "/trade-fair/IMG_3362.webp",
+      imagePng: "/trade-fair/IMG_3362.PNG",
+      summary: "Expanded floor area with dedicated business pitch and brand promotion slots.",
+      borderClass: "border-amber-700/60 hover:border-amber-600 shadow-amber-700/10",
+      badgeClass: "bg-amber-700/20 text-amber-300 border-amber-700/40",
+      btnClass: "bg-amber-600 hover:bg-amber-500 text-white",
+      features: [
+        "2 tables / 2 chairs included",
+        "20 sqm Pavilion booth space",
+        "Pavilion Lighting & Power Outlet",
+        "2 minutes documentary coverage",
+        "1-Day business pitch presentation",
+        "Brand/Logo visibility on materials & site",
+        "Certificate of Participation",
+      ],
+    },
+    {
+      id: "stall-sm",
+      code: "SM",
+      name: "Silver Membership (SM)",
+      category: "corporate",
+      price: 500000,
+      dailyRate: 100000,
+      dailyRateDisplay: "₦100,000",
+      type: "exhibitor",
+      badge: "30 sqm Pavilion Booth",
+      size: "30 sqm",
+      tag: "Popular Choice",
+      image: "/trade-fair/IMG_3356.webp",
+      imagePng: "/trade-fair/IMG_3356.PNG",
+      summary: "Prime mid-size footprint with media magazine feature and 2-day business pitch.",
+      borderClass: "border-slate-300/60 hover:border-slate-200 shadow-slate-300/10",
+      badgeClass: "bg-slate-300/15 text-slate-200 border-slate-300/40",
+      btnClass: "bg-slate-200 hover:bg-white text-slate-950",
+      features: [
+        "2 tables / 4 chairs included",
+        "30 sqm Pavilion booth space",
+        "Pavilion Lighting & Extended Power",
+        "3 minutes documentary coverage",
+        "Brand/Logo visibility on materials & site",
+        "Quarter-page official magazine feature",
+        "2-Day business pitch presentations",
+        "Certificate of Participation",
+      ],
+    },
+    {
+      id: "stall-gm",
+      code: "GM",
+      name: "Gold Membership (GM)",
+      category: "corporate",
+      price: 750000,
+      dailyRate: 150000,
+      dailyRateDisplay: "₦150,000",
+      type: "exhibitor",
+      badge: "50 sqm Pavilion Booth",
+      size: "50 sqm",
+      tag: "Executive Tier",
+      image: "/trade-fair/IMG_3359.webp",
+      imagePng: "/trade-fair/IMG_3359.PNG",
+      summary: "High-impact 50 sqm presence with half-page feature and product presentation slot.",
+      borderClass: "border-amber-400 hover:border-amber-300 shadow-xl shadow-amber-500/15",
+      badgeClass: "bg-amber-400/20 text-amber-300 border-amber-400/40",
+      btnClass: "bg-amber-400 hover:bg-amber-300 text-slate-950",
+      features: [
+        "2 tables / 4 chairs included",
+        "50 sqm Pavilion booth space",
+        "Pavilion Lighting & Prime Power Distribution",
+        "5 minutes documentary coverage",
+        "3-Day business pitch presentation slot",
+        "Half-page magazine feature",
+        "Brand/Logo visibility on materials & site",
+        "Product/business presentation opportunity",
+        "Certificate of Participation",
+      ],
+    },
+    {
+      id: "stall-pm",
+      code: "PM",
+      name: "Platinum Membership (PM)",
+      category: "corporate",
+      price: 1000000,
+      dailyRate: 200000,
+      dailyRateDisplay: "₦200,000",
+      type: "exhibitor",
+      badge: "60 sqm Pavilion Booth (VIP)",
+      size: "60 sqm VIP",
+      tag: "Flagship Corporate",
+      image: "/trade-fair/IMG_3357.webp",
+      imagePng: "/trade-fair/IMG_3357.PNG",
+      summary: "Supreme executive visibility with full-page magazine feature and 5-day pitch access.",
+      borderClass: "border-purple-400/80 hover:border-purple-300 shadow-2xl shadow-purple-500/20",
+      badgeClass: "bg-purple-500/20 text-purple-300 border-purple-400/40",
+      btnClass: "bg-gradient-to-r from-purple-500 to-amber-400 hover:from-purple-400 hover:to-amber-300 text-slate-950 font-black",
+      features: [
+        "3 tables / 4 chairs included",
+        "60 sqm VIP Pavilion booth space",
+        "Pavilion Lighting & Dedicated Power",
+        "Full-page official magazine feature",
+        "Premium Brand/Logo visibility & ad slots",
+        "Product/business promotion",
+        "7-minute documentary coverage",
+        "Full 5-Day business pitch access",
+        "Certificate of Participation",
+      ],
+    },
+    {
+      id: "stall-dm",
+      code: "DM",
+      name: "Diamond Membership (DM)",
+      category: "sponsor",
+      price: 2000000,
+      dailyRate: 0,
+      dailyRateDisplay: "Headline Sponsor",
+      type: "exhibitor",
+      badge: "Central Island Pavilion",
+      size: "Island Pavilion",
+      tag: "Supreme Headline Sponsor",
+      image: "/trade-fair/IMG_3355.webp",
+      imagePng: "/trade-fair/IMG_3355.PNG",
+      summary: "Supreme headline presenting sponsorship with live brand modelling, AV display, and national media blitz.",
+      borderClass: "border-cyan-400/80 hover:border-cyan-300 shadow-2xl shadow-cyan-500/20",
+      badgeClass: "bg-gradient-to-r from-cyan-500/20 to-amber-500/20 text-cyan-300 border-cyan-400/50",
+      btnClass: "bg-gradient-to-r from-cyan-400 via-amber-400 to-amber-500 hover:from-cyan-300 hover:to-amber-400 text-slate-950 font-black",
+      features: [
+        "Live Brand Modelling activation on stage",
+        "Live Documentary & Audio-Visual Display",
+        "Professional Audio-Visual coverage & videography",
+        "Exclusive documentary feature & media blitz",
+        "Full-page premium magazine feature",
+        "Dedicated brand & product presentation opportunity",
+        "Headline logo placement across all stages & website",
+        "Executive VIP Lounge setup & hosting",
+      ],
+    },
+  ];
+
+  const filteredPackages = packages.filter((pkg) => {
+    if (activeCategory === "all") return true;
+    return pkg.category === activeCategory;
+  });
 
   const handleOpenModal = (pkg: BookingPackage) => {
     setSelectedPkg(pkg);
@@ -274,6 +352,11 @@ export default function ExhibitorsPage() {
             {/* Quick Metrics Bar */}
             <div className="inline-flex flex-wrap items-center justify-center gap-6 sm:gap-8 bg-slate-900/90 border border-amber-500/30 rounded-2xl p-4 sm:px-8 sm:py-4 shadow-2xl backdrop-blur-md text-xs sm:text-sm font-semibold">
               <div className="flex items-center gap-2 text-slate-200">
+                <Calendar className="text-amber-400 shrink-0" size={18} />
+                <span>1st – 5th Dec 2026 · Starting 09:00 AM (Open 24/7 Non-stop)</span>
+              </div>
+              <div className="hidden sm:block w-px h-5 bg-slate-700" />
+              <div className="flex items-center gap-2 text-slate-200">
                 <Store className="text-amber-400 shrink-0" size={18} />
                 <span>200+ Exhibition Stalls</span>
               </div>
@@ -284,8 +367,8 @@ export default function ExhibitorsPage() {
               </div>
               <div className="hidden sm:block w-px h-5 bg-slate-700" />
               <div className="flex items-center gap-2 text-slate-200">
-                <Truck className="text-amber-400 shrink-0" size={18} />
-                <span>Direct Drive-In Cargo Docks</span>
+                <Users className="text-amber-400 shrink-0" size={18} />
+                <span>10,000+ Trade Buyers</span>
               </div>
             </div>
           </div>
@@ -294,7 +377,7 @@ export default function ExhibitorsPage() {
         {/* Pricing & Stall Packages Grid */}
         <section className="py-20 lg:py-24 bg-slate-950">
           <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center max-w-3xl mx-auto mb-14">
+            <div className="text-center max-w-3xl mx-auto mb-10">
               <span className="text-xs font-bold uppercase tracking-widest text-amber-400 bg-amber-500/10 px-3 py-1 rounded-full border border-amber-500/30">
                 Official Booth & Membership Packages
               </span>
@@ -304,23 +387,72 @@ export default function ExhibitorsPage() {
               <p className="text-slate-400 text-sm sm:text-base">
                 Spaces are assigned on a rolling first-come-first-served basis at Nigerian Army Conference Centre &amp; Suites (NACCAS), Abuja.
               </p>
+
+              {/* Category Filter Tabs */}
+              <div className="flex flex-wrap items-center justify-center gap-2 mt-8">
+                {[
+                  { id: "all", label: "All 7 Packages" },
+                  { id: "msme", label: "MSME Stalls (ME · SSE · BM)" },
+                  { id: "corporate", label: "Corporate Tiers (SM · GM · PM)" },
+                  { id: "sponsor", label: "Headline Sponsor (Diamond)" },
+                ].map((tab) => (
+                  <button
+                    key={tab.id}
+                    type="button"
+                    onClick={() => setActiveCategory(tab.id as any)}
+                    className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all ${
+                      activeCategory === tab.id
+                        ? "bg-amber-500 text-slate-950 shadow-lg shadow-amber-500/20 scale-105"
+                        : "bg-slate-900 border border-slate-800 text-slate-300 hover:text-white hover:border-slate-700"
+                    }`}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-16 items-stretch">
-              {packages.map((pkg) => (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-16 items-stretch">
+              {filteredPackages.map((pkg) => (
                 <div
                   key={pkg.id}
-                  className={`bg-slate-900 border-2 ${pkg.borderClass} rounded-3xl p-7 flex flex-col justify-between relative shadow-xl transition-all hover:-translate-y-1.5`}
+                  className={`bg-slate-900 border-2 ${pkg.borderClass} ${
+                    pkg.code === "DM"
+                      ? "bg-gradient-to-b from-slate-900 via-cyan-950/20 to-slate-900 shadow-2xl shadow-cyan-500/20"
+                      : ""
+                  } rounded-3xl p-6 flex flex-col justify-between relative shadow-xl transition-all hover:-translate-y-1.5 group`}
                 >
                   {pkg.tag && (
-                    <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-amber-500 text-slate-950 text-[10px] font-black px-3.5 py-1 rounded-full uppercase tracking-wider shadow-md">
+                    <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-amber-500 text-slate-950 text-[10px] font-black px-3.5 py-1 rounded-full uppercase tracking-wider shadow-md z-10 whitespace-nowrap">
                       {pkg.tag}
                     </div>
                   )}
 
                   <div>
+                    {/* Flyer Artwork Thumbnail with Zoom Button */}
+                    <div className="relative mb-5 rounded-2xl overflow-hidden bg-slate-950 border border-slate-800 aspect-square group/img">
+                      <picture>
+                        <source srcSet={pkg.image} type="image/webp" />
+                        <img
+                          src={pkg.image}
+                          alt={`${pkg.name} Official Flyer`}
+                          className="w-full h-full object-cover transition-transform duration-500 group-hover/img:scale-105"
+                          loading="lazy"
+                        />
+                      </picture>
+                      <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/30 to-transparent opacity-0 group-hover/img:opacity-100 transition-opacity flex items-end justify-between p-3">
+                        <button
+                          type="button"
+                          onClick={() => setPreviewFlyer(pkg)}
+                          className="w-full py-2.5 px-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs flex items-center justify-center gap-1.5 shadow-lg transition-transform"
+                        >
+                          <ZoomIn size={14} /> Enlarge Official Flyer
+                        </button>
+                      </div>
+                    </div>
+
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-[10px] font-bold text-amber-400 uppercase tracking-widest">
+                      <span className="text-[10px] font-bold text-amber-400 uppercase tracking-widest bg-amber-500/10 px-2.5 py-0.5 rounded-full border border-amber-500/20">
                         Tier: {pkg.code}
                       </span>
                       <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${pkg.badgeClass}`}>
@@ -328,47 +460,144 @@ export default function ExhibitorsPage() {
                       </span>
                     </div>
 
-                    <h3 className="text-xl sm:text-2xl font-black text-white mt-1">
+                    <h3 className="text-xl font-black text-white mt-1 group-hover:text-amber-400 transition-colors">
                       {pkg.name}
                     </h3>
 
-                    <div className="mt-4 mb-2">
-                      <div className="flex items-baseline gap-1">
-                        <span className="text-3xl sm:text-4xl font-black text-amber-400">
-                          ₦{pkg.price.toLocaleString()}
-                        </span>
-                        <span className="text-xs text-slate-400">/ 5-day package</span>
-                      </div>
-                      <div className="text-xs font-semibold text-slate-400 mt-1 flex items-center gap-1.5">
-                        <span className="text-emerald-400 font-bold">Daily Rate:</span>
-                        <span className="text-white font-bold">₦{pkg.dailyRate.toLocaleString()}</span>
-                        <span>/ day</span>
+                    <div className="my-3 p-3.5 rounded-2xl bg-slate-950/80 border border-slate-800">
+                      <div className="flex items-baseline justify-between">
+                        <div>
+                          <span className="text-2xl sm:text-3xl font-black text-amber-400">
+                            ₦{pkg.price.toLocaleString()}
+                          </span>
+                          <span className="text-[10px] text-slate-400 block -mt-1 font-semibold">Total (5-Days)</span>
+                        </div>
+                        <div className="text-right">
+                          <span className="text-xs font-bold text-slate-200">
+                            {pkg.dailyRateDisplay}
+                          </span>
+                          <span className="text-[10px] text-slate-400 block -mt-1 font-semibold">
+                            {pkg.dailyRate > 0 ? "/ Day Rate" : "Sponsorship"}
+                          </span>
+                        </div>
                       </div>
                     </div>
 
-                    <p className="text-xs text-slate-300 mt-3 mb-6 leading-relaxed">
+                    <p className="text-xs text-slate-300 mt-2 mb-4 leading-relaxed">
                       {pkg.summary}
                     </p>
 
-                    <ul className="space-y-2.5 text-xs text-slate-300 mb-8 border-t border-slate-800 pt-5">
+                    <div className="flex flex-wrap gap-1.5 mb-4 text-[11px] font-medium text-slate-300">
+                      <span className="px-2.5 py-1 rounded-lg bg-slate-950 border border-slate-800 flex items-center gap-1">
+                        <Store size={12} className="text-amber-400" /> {pkg.size}
+                      </span>
+                    </div>
+
+                    <ul className="space-y-2 text-xs text-slate-300 mb-6 border-t border-slate-800 pt-4">
                       {pkg.features.map((feat, idx) => (
-                        <li key={idx} className="flex items-start gap-2.5">
-                          <CheckCircle2 size={15} className="text-amber-400 shrink-0 mt-0.5" />
+                        <li key={idx} className="flex items-start gap-2">
+                          <CheckCircle2 size={14} className="text-amber-400 shrink-0 mt-0.5" />
                           <span>{feat}</span>
                         </li>
                       ))}
                     </ul>
                   </div>
 
-                  <button
-                    onClick={() => handleOpenModal(pkg)}
-                    className={`w-full py-3.5 rounded-xl ${pkg.btnClass} font-black text-xs uppercase tracking-wider shadow-lg transition-all hover:scale-[1.02]`}
-                  >
-                    Book {pkg.name.split("(")[0]}
-                  </button>
+                  <div className="space-y-2 pt-3 border-t border-slate-800">
+                    <button
+                      type="button"
+                      onClick={() => handleOpenModal(pkg)}
+                      className={`w-full py-3.5 rounded-xl ${pkg.btnClass} font-black text-xs uppercase tracking-wider shadow-lg transition-all hover:scale-[1.02] flex items-center justify-center gap-1.5`}
+                    >
+                      <ShoppingBag size={14} /> Book {pkg.name.split("(")[0]}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setPreviewFlyer(pkg)}
+                      className="w-full py-2 rounded-xl bg-slate-950 hover:bg-slate-800 border border-slate-800 text-slate-300 hover:text-white font-bold text-xs transition-colors flex items-center justify-center gap-1"
+                    >
+                      <Eye size={13} /> View Flyer Artwork
+                    </button>
+                  </div>
                 </div>
               ))}
-            </div>
+
+                {/* Auto-Slideshow Card — fills the empty 4th grid slot */}
+                <div className="bg-slate-950 border-2 border-amber-500/40 rounded-3xl overflow-hidden flex flex-col justify-between relative shadow-xl group">
+                  {/* Cycling image */}
+                  <div className="relative flex-1 min-h-[260px] overflow-hidden">
+                    {packages.map((pkg, idx) => (
+                      <div
+                        key={pkg.id}
+                        className={`absolute inset-0 transition-opacity duration-700 ${
+                          idx === slideIndex ? "opacity-100" : "opacity-0"
+                        }`}
+                      >
+                        <picture>
+                          <source srcSet={pkg.image} type="image/webp" />
+                          <img
+                            src={pkg.image}
+                            alt={pkg.name}
+                            className="w-full h-full object-cover"
+                            loading="lazy"
+                          />
+                        </picture>
+                        <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/60 to-transparent" />
+                      </div>
+                    ))}
+
+                    {/* Slide indicator dots */}
+                    <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 z-10">
+                      {packages.map((_, idx) => (
+                        <button
+                          key={idx}
+                          type="button"
+                          onClick={() => setSlideIndex(idx)}
+                          className={`rounded-full transition-all ${
+                            idx === slideIndex
+                              ? "w-5 h-1.5 bg-amber-400"
+                              : "w-1.5 h-1.5 bg-slate-500 hover:bg-slate-300"
+                          }`}
+                          aria-label={`View slide ${idx + 1}`}
+                        />
+                      ))}
+                    </div>
+
+                    {/* Current tier label */}
+                    <div className="absolute top-3 left-3 right-3 z-10">
+                      <span className="text-[10px] font-black uppercase tracking-widest bg-amber-500 text-slate-950 px-2.5 py-1 rounded-full shadow-md">
+                        {packages[slideIndex]?.code} · ₦{packages[slideIndex]?.price.toLocaleString()}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Bottom CTA */}
+                  <div className="p-5 bg-slate-950 border-t border-amber-500/20">
+                    <p className="text-xs font-bold text-amber-400 uppercase tracking-wider mb-1">
+                      All 7 Membership Tiers
+                    </p>
+                    <p className="text-white text-sm font-black leading-snug mb-4">
+                      {packages[slideIndex]?.name}
+                    </p>
+                    <div className="space-y-2">
+                      <button
+                        type="button"
+                        onClick={() => handleOpenModal(packages[slideIndex])}
+                        className="w-full py-3 rounded-xl bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-400 hover:to-amber-300 text-slate-950 font-black text-xs uppercase tracking-wider shadow-lg shadow-amber-500/20 transition-all flex items-center justify-center gap-1.5"
+                      >
+                        <ShoppingBag size={13} /> Book Now · ₦{packages[slideIndex]?.price.toLocaleString()}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setPreviewFlyer(packages[slideIndex] ?? null)}
+                        className="w-full py-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 hover:text-white font-bold text-xs transition-colors flex items-center justify-center gap-1"
+                      >
+                        <Eye size={13} /> View Flyer Artwork
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
 
             {/* Official Flyer & Pricing Sheet Showcase */}
             <div className="bg-gradient-to-r from-slate-900 via-amber-950/30 to-slate-900 border border-amber-500/30 rounded-3xl p-6 sm:p-8 mb-20 flex flex-col lg:flex-row items-center justify-between gap-6 shadow-2xl">
@@ -536,6 +765,117 @@ export default function ExhibitorsPage() {
           </div>
         </section>
       </main>
+
+      {/* Lightbox / High-Res Flyer Preview Modal */}
+      {previewFlyer && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          className="fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-md p-4 sm:p-6 flex items-center justify-center animate-fadeIn"
+          onClick={() => setPreviewFlyer(null)}
+        >
+          <div
+            className="relative bg-slate-900 border border-amber-500/40 rounded-3xl max-w-4xl w-full max-h-[92vh] overflow-y-auto shadow-2xl p-6 sm:p-8 flex flex-col lg:flex-row gap-6"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Close Button */}
+            <button
+              onClick={() => setPreviewFlyer(null)}
+              className="absolute top-4 right-4 z-10 w-9 h-9 rounded-full bg-slate-950/80 hover:bg-amber-500 text-white hover:text-slate-950 border border-slate-700 flex items-center justify-center transition-colors"
+              aria-label="Close flyer preview"
+            >
+              <X size={18} />
+            </button>
+
+            {/* Flyer Image */}
+            <div className="lg:w-1/2 flex items-center justify-center bg-slate-950 rounded-2xl overflow-hidden border border-slate-800 p-2">
+              <picture>
+                <source srcSet={previewFlyer.image} type="image/webp" />
+                <img
+                  src={previewFlyer.imagePng || previewFlyer.image}
+                  alt={`${previewFlyer.name} Full Artwork`}
+                  className="max-h-[75vh] w-auto object-contain rounded-xl shadow-lg"
+                />
+              </picture>
+            </div>
+
+            {/* Flyer Details & Instant Booking */}
+            <div className="lg:w-1/2 flex flex-col justify-between">
+              <div>
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-xs font-bold text-amber-400 uppercase tracking-widest bg-amber-500/10 px-2.5 py-1 rounded-full border border-amber-500/30">
+                    Tier: {previewFlyer.code}
+                  </span>
+                  <span className="text-xs font-bold px-2.5 py-1 rounded-full border bg-slate-800/80 border-slate-700 text-slate-200">
+                    {previewFlyer.badge}
+                  </span>
+                </div>
+
+                <h3 className="text-2xl sm:text-3xl font-black text-white mt-1 mb-2">
+                  {previewFlyer.name}
+                </h3>
+
+                <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 my-4">
+                  <div className="flex items-baseline justify-between">
+                    <div>
+                      <span className="text-3xl font-black text-amber-400">
+                        ₦{previewFlyer.price.toLocaleString()}
+                      </span>
+                      <span className="text-xs text-slate-400 block font-semibold">Total for 5 Days</span>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-sm font-bold text-white">
+                        {previewFlyer.dailyRateDisplay}
+                      </span>
+                      <span className="text-xs text-slate-400 block font-semibold">
+                        {previewFlyer.dailyRate > 0 ? "Daily Rate" : "Headline Tier"}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <p className="text-xs sm:text-sm text-slate-300 leading-relaxed mb-4">
+                  {previewFlyer.summary}
+                </p>
+
+                <h4 className="text-xs font-bold text-amber-400 uppercase tracking-wider mb-2">
+                  Package Entitlements:
+                </h4>
+                <ul className="space-y-2 text-xs text-slate-300 max-h-48 overflow-y-auto pr-2">
+                  {previewFlyer.features.map((feat: string, i: number) => (
+                    <li key={i} className="flex items-start gap-2">
+                      <CheckCircle2 size={14} className="text-amber-400 shrink-0 mt-0.5" />
+                      <span>{feat}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              <div className="mt-6 pt-4 border-t border-slate-800 space-y-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const pkgToBook = previewFlyer;
+                    setPreviewFlyer(null);
+                    handleOpenModal(pkgToBook);
+                  }}
+                  className="w-full py-3.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-400 hover:to-amber-300 text-slate-950 font-black text-xs uppercase tracking-wider shadow-lg shadow-amber-500/20 transition-all flex items-center justify-center gap-2"
+                >
+                  <ShoppingBag size={15} /> Book This Stall (₦{previewFlyer.price.toLocaleString()})
+                </button>
+                <a
+                  href={previewFlyer.imagePng || previewFlyer.image}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full py-2.5 rounded-xl bg-slate-950 hover:bg-slate-800 border border-slate-800 text-slate-300 hover:text-white font-bold text-xs transition-colors flex items-center justify-center gap-1.5"
+                >
+                  <ZoomIn size={13} /> Open Original Artwork in New Tab
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       <BookingModal
         isOpen={modalOpen}

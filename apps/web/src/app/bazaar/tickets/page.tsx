@@ -43,86 +43,28 @@ export default function TicketsPage() {
     features: string[];
   })[] = [
     {
-      id: "free-general",
-      name: "Free Public Day Pass",
-      price: 0,
-      type: "ticket",
-      badge: "Single Day Entry",
-      subline: "General Admission",
-      summary:
-        "100% Free Entry. Access to all trade exhibition pavilions, SME marketplace, agro-allied exhibits, and open cultural stages for any single day.",
-      borderClass: "border-slate-800 hover:border-emerald-500/50",
-      badgeClass: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
-      btnClass: "bg-slate-800 hover:bg-slate-700 text-white border border-slate-700 hover:border-emerald-400",
-      features: [
-        "100% Free General Gate Admission",
-        "Instant digital QR Code Gate Pass",
-        "Access to all general exhibition halls",
-        "Public consumer & cultural stages",
-        "Fast-track digital gate scanner check-in",
-      ],
-    },
-    {
       id: "free-all-access",
-      name: "Free 5-Day Visitor Pass",
+      name: "Free All-Access Visitor Pass",
       price: 0,
       type: "ticket",
-      tag: "Most Popular",
-      badge: "Full 5 Days · Dec 1–5",
-      subline: "All 5 Days Included",
+      tag: "All-In-One Gate Pass",
+      badge: "Full 5 Days · 1st–5th Dec 2026",
+      subline: "24/7 Non-Stop Access",
       summary:
-        "Full 5-day unrestricted complimentary entrance (Dec 1–5, 2026). Fast-track gate QR scan and access to all general exhibition halls.",
-      borderClass: "border-2 border-emerald-500 shadow-2xl shadow-emerald-500/15",
+        "100% Free All-Access Pass for the entire 5 days (starting 09:00 AM Dec 1st straight through to Dec 5th, with zero closing hours). Dedicated fast-track QR scan lane, full exhibition pavilions, and open trade forums.",
+      borderClass: "border-2 border-emerald-500 shadow-2xl shadow-emerald-500/20",
       badgeClass: "bg-emerald-500 text-slate-950 font-black",
-      btnClass: "bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black shadow-lg shadow-emerald-500/20",
+      btnClass: "bg-gradient-to-r from-emerald-400 via-teal-400 to-amber-400 hover:from-emerald-300 hover:to-amber-300 text-slate-950 font-black shadow-lg shadow-emerald-500/25",
       features: [
-        "All 5 Days Included (Dec 1–5, 2026)",
+        "100% Free Gate Admission (₦0 Fee)",
+        "Full 5 Days Included (1st – 5th Dec 2026)",
+        "24 Hours Non-Stop Access (No Closing Time)",
         "Instant digital QR Code Pass to mobile/email",
-        "Full access to Halls A, B & C pavilions",
+        "Dedicated Fast-Track Scanner Gate Lane",
+        "Full access to all Exhibition Pavilions & Halls",
         "Open networking with 200+ brands & vendors",
         "Digital fair guide & daily event schedule",
-      ],
-    },
-    {
-      id: "free-trade-buyer",
-      name: "Trade Buyer & B2B Pass",
-      price: 0,
-      type: "ticket",
-      tag: "Commercial / B2B",
-      badge: "B2B Accreditation",
-      subline: "Trade Professionals",
-      summary:
-        "Complimentary professional pass for commercial buyers, importers, retailers, and distributors with digital directory & vendor networking.",
-      borderClass: "border-blue-500/40 hover:border-blue-400",
-      badgeClass: "bg-blue-500/10 text-blue-400 border-blue-500/20",
-      btnClass: "bg-blue-600 hover:bg-blue-500 text-white font-bold",
-      features: [
-        "Free Verified Trade Buyer Badge",
-        "Commercial supplier matchmaking zone",
-        "B2B deal-making directories & contacts",
-        "Fast-track priority gate lanes",
-        "Official Certificate of Trade Attendance",
-      ],
-    },
-    {
-      id: "free-vip",
-      name: "VIP Executive Accreditation",
-      price: 0,
-      type: "ticket",
-      tag: "VIP / Diplomatic",
-      badge: "Complimentary VIP",
-      subline: "Executives & Delegations",
-      summary:
-        "Complimentary executive accreditation for corporate leaders, investors, and diplomatic mission delegates. Priority fast-track entrance & plenary access.",
-      borderClass: "border-purple-500/50 hover:border-purple-400 shadow-xl shadow-purple-500/15",
-      badgeClass: "bg-purple-500/15 text-purple-300 border-purple-500/30",
-      btnClass: "bg-gradient-to-r from-purple-500 to-amber-400 hover:from-purple-400 hover:to-amber-300 text-slate-950 font-black",
-      features: [
-        "Executive VIP Accreditation Pass",
-        "Priority VIP registration lounge entrance",
-        "Reserved seating at plenary keynote sessions",
-        "Official Trade Fair satchel & delegate pack",
-        "Visa Support & Protocol facilitation",
+        "Open B2B Matchmaking & Cultural Stages",
       ],
     },
   ];
@@ -132,39 +74,22 @@ export default function TicketsPage() {
     setModalOpen(true);
   };
 
-  const comparisonFeatures = [
-    { name: "Exhibition Pavilions Access (Halls A, B, C)", standard: true, vip: true, vvip: true, table: true },
-    { name: "Public Consumer & Cultural Stage", standard: true, vip: true, vvip: true, table: true },
-    { name: "Instant Digital QR Gate Scanner Pass", standard: true, vip: true, vvip: true, table: true },
-    { name: "All 5 Days Access (Dec 1–5, 2026)", standard: false, vip: true, vvip: true, table: true },
-    { name: "Digital Event Schedule & Fair Directory", standard: true, vip: true, vvip: true, table: true },
-    { name: "B2B Deal-Making & Matchmaking Zone", standard: false, vip: false, vvip: true, table: true },
-    { name: "Verified Commercial Trade Buyer Badge", standard: false, vip: false, vvip: true, table: false },
-    { name: "VIP Executive Business Lounge Access", standard: false, vip: false, vvip: false, table: true },
-    { name: "Reserved Keynote & Plenary Summit Seating", standard: false, vip: false, vvip: false, table: true },
-    { name: "Visa Support & Protocol Facilitation Letter", standard: false, vip: false, vvip: true, table: true },
-  ];
-
   const faqs = [
     {
       q: "Do I need to register before attending? Can I just walk in?",
       a: "Yes, you can absolutely walk in on any day without any prior registration. Gate admission is 100% free for all visitors and members of the public. However, if you register online (it takes just 30 seconds and is completely free), you'll receive a personal digital QR Code that gets you through our dedicated fast-track scanner lane — no waiting in the regular check-in queue!",
     },
     {
-      q: "What is the benefit of registering online if entry is free?",
-      a: "Online registration gives you: (1) A personal digital QR Code for the fast-track dedicated scanner gate — ideal to skip queue especially on busy days. (2) An instant confirmation email with the full event programme, daily schedule, and exhibitor directory. (3) Access to special B2B matchmaking tools and pre-event networking directories if you register as a Trade Buyer.",
+      q: "What does the Free All-Access Visitor Pass cover?",
+      a: "The Free All-Access Visitor Pass covers unrestricted admission across the entire 5 days of the trade fair (from 09:00 AM Dec 1st through Dec 5th with 24-hour non-stop opening). It gives you fast-track QR scanner entry, access to all exhibition halls, cultural stages, and networking directories.",
     },
     {
-      q: "Can I enter on multiple days? Do I need to re-register each day?",
-      a: "Walk-in visitors can enter on any day freely. If you've registered for the Free 5-Day Visitor Pass, your single QR Code grants multi-day fast-track gate access from 1st to 5th December 2026 — no need to re-register each morning.",
-    },
-    {
-      q: "What is the difference between the pass types if entry is free for all?",
-      a: "All gate passes are free. The pass types differ by the benefits beyond entry: The General Day Pass is for any single-day visit. The 5-Day Pass covers the full week. The Trade Buyer & B2B Pass includes access to commercial deal-making zones and verified supplier matchmaking. The VIP Executive Accreditation includes priority executive lounge access and reserved keynote seating.",
+      q: "Can I enter at any time and on multiple days?",
+      a: "Yes! There is no closing time until the end of the trade fair on December 5th. Your single digital QR Code remains active and valid for non-stop entry day and night — no need to re-register each morning.",
     },
     {
       q: "Can international attendees receive an official invitation letter for visa processing?",
-      a: "Yes. Registered Trade Buyer and VIP Executive accreditation holders can request an official Letter of Invitation from the GloTrade Secretariat to support visa-on-arrival or embassy visa processing by contacting protocol@glotrade.online or tradefair@glotrade.online.",
+      a: "Yes. Registered attendees and international delegates can request an official Letter of Invitation from the GloTrade Secretariat to support visa-on-arrival or embassy visa processing by contacting protocol@glotrade.online or tradefair@glotrade.online.",
     },
   ];
 
@@ -251,126 +176,100 @@ export default function TicketsPage() {
               </p>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-20 items-stretch">
+            <div className="max-w-2xl mx-auto mb-20">
               {packages.map((pkg) => (
                 <div
                   key={pkg.id}
-                  className={`bg-slate-900 border-2 ${pkg.borderClass} rounded-3xl p-7 flex flex-col justify-between relative shadow-xl transition-all hover:-translate-y-1.5`}
+                  className={`bg-slate-900 border-2 ${pkg.borderClass} rounded-3xl p-8 sm:p-10 flex flex-col justify-between relative shadow-2xl transition-all hover:-translate-y-1.5`}
                 >
                   {pkg.tag && (
-                    <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-amber-500 text-slate-950 text-[10px] font-black px-3.5 py-1 rounded-full uppercase tracking-wider shadow-md">
+                    <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-gradient-to-r from-emerald-500 via-teal-400 to-amber-400 text-slate-950 text-xs font-black px-5 py-1 rounded-full uppercase tracking-wider shadow-md">
                       {pkg.tag}
                     </div>
                   )}
 
                   <div>
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">
                         {pkg.subline}
                       </span>
-                      <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full border ${pkg.badgeClass}`}>
+                      <span className={`text-xs font-bold px-3 py-1 rounded-full border ${pkg.badgeClass}`}>
                         {pkg.badge}
                       </span>
                     </div>
 
-                    <h2 className="text-xl sm:text-2xl font-black text-white mt-1">
+                    <h2 className="text-2xl sm:text-3xl font-black text-white mt-1">
                       {pkg.name}
                     </h2>
 
-                    <div className="mt-4 mb-2">
-                      <div className="flex items-baseline gap-1.5">
-                        <span className="text-3xl sm:text-4xl font-black text-emerald-400">
+                    <div className="mt-4 mb-3">
+                      <div className="flex items-baseline gap-2">
+                        <span className="text-4xl sm:text-5xl font-black text-emerald-400">
                           FREE
                         </span>
-                        <span className="text-xs font-bold text-slate-400">/ ₦0 Entry</span>
+                        <span className="text-sm font-bold text-slate-400">/ ₦0 Gate Fee</span>
                       </div>
-                      <span className="text-[11px] font-semibold text-emerald-400/90 block mt-1">
-                        Complimentary Gate Admission
+                      <span className="text-xs font-semibold text-emerald-400/90 block mt-1">
+                        Complimentary Gate Admission · 24/7 Access (No Closing Time)
                       </span>
                     </div>
 
-                    <p className="text-xs text-slate-300 mt-3 mb-6 leading-relaxed">
+                    <p className="text-sm text-slate-300 mt-3 mb-6 leading-relaxed">
                       {pkg.summary}
                     </p>
 
-                    <ul className="space-y-2.5 text-xs text-slate-300 mb-8 border-t border-slate-800 pt-5">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs sm:text-sm text-slate-300 mb-8 border-t border-slate-800 pt-6">
                       {pkg.features.map((feat, idx) => (
-                        <li key={idx} className="flex items-start gap-2.5">
-                          <CheckCircle2 size={15} className="text-emerald-400 shrink-0 mt-0.5" />
+                        <div key={idx} className="flex items-start gap-2.5">
+                          <CheckCircle2 size={16} className="text-emerald-400 shrink-0 mt-0.5" />
                           <span>{feat}</span>
-                        </li>
+                        </div>
                       ))}
-                    </ul>
+                    </div>
                   </div>
 
                   <button
                     onClick={() => handleOpenModal(pkg)}
-                    className={`w-full py-3.5 rounded-xl ${pkg.btnClass} text-xs font-black uppercase tracking-wider shadow-lg transition-all hover:scale-[1.02] flex items-center justify-center gap-1.5`}
+                    className={`w-full py-4 rounded-xl ${pkg.btnClass} text-sm font-black uppercase tracking-wider shadow-xl transition-all hover:scale-[1.02] flex items-center justify-center gap-2`}
                   >
-                    <Ticket size={15} /> Claim Free Pass
+                    <Ticket size={18} /> Claim Free All-Access Pass (Instant QR Code)
                   </button>
                 </div>
               ))}
             </div>
 
-            {/* Feature Comparison Matrix Table */}
-            <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-10 mb-20 shadow-2xl">
-              <div className="text-center max-w-xl mx-auto mb-10">
-                <span className="text-xs font-bold uppercase tracking-widest text-amber-400 bg-amber-500/10 px-3 py-1 rounded-full border border-amber-500/30">
-                  Feature Comparison
+            {/* All-Inclusive Pass Privileges */}
+            <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-10 mb-20 shadow-2xl max-w-4xl mx-auto">
+              <div className="text-center max-w-xl mx-auto mb-8">
+                <span className="text-xs font-bold uppercase tracking-widest text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/30">
+                  Included With Every Pass
                 </span>
                 <h3 className="text-2xl sm:text-3xl font-black text-white mt-3">
-                  Detailed Tier Benefits
+                  All-Inclusive Gate Privileges
                 </h3>
+                <p className="text-slate-400 text-xs sm:text-sm mt-2">
+                  Every attendee receives full unrestricted access across all trade fair pavilions without tier restrictions.
+                </p>
               </div>
 
-              <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse min-w-[650px]">
-                  <thead>
-                    <tr className="border-b border-slate-800 text-xs font-black uppercase tracking-wider text-slate-400">
-                      <th className="py-4 px-4">Inclusion / Benefit</th>
-                      <th className="py-4 px-4 text-center">Day Pass<br /><span className="text-emerald-400 font-bold">FREE (₦0)</span></th>
-                      <th className="py-4 px-4 text-center">5-Day Pass<br /><span className="text-emerald-400 font-bold">FREE (₦0)</span></th>
-                      <th className="py-4 px-4 text-center">Trade Buyer<br /><span className="text-blue-400 font-bold">FREE (₦0)</span></th>
-                      <th className="py-4 px-4 text-center">VIP Exec<br /><span className="text-amber-400 font-bold">FREE (₦0)</span></th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-800 text-xs sm:text-sm">
-                    {comparisonFeatures.map((feat, i) => (
-                      <tr key={i} className="hover:bg-slate-950/40 transition-colors">
-                        <td className="py-4 px-4 font-semibold text-slate-200">{feat.name}</td>
-                        <td className="py-4 px-4 text-center">
-                          {feat.standard ? (
-                            <Check size={18} className="text-emerald-400 mx-auto" />
-                          ) : (
-                            <X size={16} className="text-slate-600 mx-auto" />
-                          )}
-                        </td>
-                        <td className="py-4 px-4 text-center">
-                          {feat.vip ? (
-                            <Check size={18} className="text-emerald-400 mx-auto" />
-                          ) : (
-                            <X size={16} className="text-slate-600 mx-auto" />
-                          )}
-                        </td>
-                        <td className="py-4 px-4 text-center">
-                          {feat.vvip ? (
-                            <Check size={18} className="text-emerald-400 mx-auto" />
-                          ) : (
-                            <X size={16} className="text-slate-600 mx-auto" />
-                          )}
-                        </td>
-                        <td className="py-4 px-4 text-center">
-                          {feat.table ? (
-                            <Check size={18} className="text-emerald-400 mx-auto" />
-                          ) : (
-                            <X size={16} className="text-slate-600 mx-auto" />
-                          )}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {[
+                  "Exhibition Pavilions Access (Halls A, B & C)",
+                  "Public Consumer & Cultural Stages",
+                  "Instant Digital QR Gate Scanner Pass",
+                  "All 5 Days 24/7 Access (Dec 1–5, 2026)",
+                  "Digital Event Schedule & Fair Directory",
+                  "B2B Deal-Making & Matchmaking Zones",
+                  "Verified Commercial Trade Directory Access",
+                  "Plenary Summit & Keynote Sessions",
+                  "Dedicated Fast-Track Scanner Lanes",
+                  "Visa Support & Protocol Facilitation Letter",
+                ].map((item, idx) => (
+                  <div key={idx} className="flex items-center gap-3 bg-slate-950/60 border border-slate-800/80 rounded-xl p-3.5">
+                    <CheckCircle2 size={18} className="text-emerald-400 shrink-0" />
+                    <span className="text-xs sm:text-sm font-semibold text-slate-200">{item}</span>
+                  </div>
+                ))}
               </div>
             </div>
 

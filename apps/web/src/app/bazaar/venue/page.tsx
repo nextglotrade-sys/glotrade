@@ -329,7 +329,7 @@ export default function VenuePage() {
               <div className="hidden sm:block w-px h-6 bg-slate-700" />
               <div className="flex items-center gap-2.5 text-slate-200 text-sm">
                 <Clock className="text-amber-400 shrink-0" size={18} />
-                <span className="font-semibold">Daily 9:00 AM – 6:00 PM</span>
+                <span className="font-semibold">Starting from 09:00 AM till 5th Dec · Open 24/7 (No closing time)</span>
               </div>
               <div className="hidden sm:block w-px h-6 bg-slate-700" />
               <div className="flex items-center gap-2.5 text-slate-200 text-sm">

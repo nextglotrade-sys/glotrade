@@ -100,7 +100,7 @@ export default function AboutPage() {
 
           <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-black uppercase tracking-widest mb-6 shadow-sm">
-              <Award size={14} className="text-amber-400" /> AL ABAMA GROUP & GLOTRADE PRESENT
+              <Award size={14} className="text-amber-400" /> GLOTRADE PRESENT
             </div>
 
             <h1 className="text-4xl sm:text-6xl lg:text-7xl font-black text-white tracking-tight leading-tight mb-6">

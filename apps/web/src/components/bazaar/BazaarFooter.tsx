@@ -94,7 +94,7 @@ export default function BazaarFooter() {
                 <Calendar size={18} className="text-amber-400 shrink-0 mt-0.5" />
                 <div>
                   <p className="text-white font-medium">{translate("bazaar.eventDate") || "1st – 5th December 2026"}</p>
-                  <p className="text-xs text-slate-500">Daily 9:00 AM - 6:00 PM</p>
+                  <p className="text-xs text-slate-400">Starting from 09:00 AM till 5th Dec · Open 24/7 (No closing time)</p>
                 </div>
               </li>
               <li className="flex items-start gap-3">
