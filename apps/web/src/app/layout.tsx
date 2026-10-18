@@ -4,6 +4,7 @@ import { Poppins } from "next/font/google";
 import "./globals.css";
 import LayoutWrapper from "@/components/layout/LayoutWrapper";
 import ToastHost from "@/components/common/Toast";
+import { Analytics } from '@vercel/analytics/next';
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -130,6 +131,7 @@ export default async function RootLayout({
           <ToastHost />
           <LayoutWrapper>{children}</LayoutWrapper>
         </NextIntlClientProvider>
+        <Analytics />
       </body>
     </html>
   );
